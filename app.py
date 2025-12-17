@@ -1,18 +1,24 @@
 import streamlit as st
 
-st.set_page_config(
-    page_title="PropPass Engine",
-    layout="centered"
+from proppass.drawdown import (
+    buffer_to_floor,
+    compute_trailing_state,
+    update_high_water_mark,
 )
 
+st.set_page_config(page_title="PropPass Engine", layout="centered")
+
 st.title("PropPass Engine 🚦")
-st.subheader("Prop firm evaluation risk & sizing engine")
 
-st.markdown("""
-This app will help futures traders:
-- Manage trailing drawdown
-- Size positions safely
-- Estimate pass probability
-""")
+st.header("Inputs")
+start_balance = st.number_input("Starting balance ($)", min_value=0, step=500, value=50000)
+max_dd = st.number_input("Max drawdown ($)", min_value=1, step=100, value=2000)
+equity = st.number_input("Current equity ($)", min_value=0, step=100, value=50000)
 
-st.success("Deployment successful. Engine coming online.")
+st.header("Results")
+hwm = update_high_water_mark(start_balance, equity)
+state = compute_trailing_state(hwm, max_dd)
+buffer = buffer_to_floor(equity, state.dd_floor)
+
+st.metric("Drawdown floor ($)", f"{state.dd_floor:,.0f}")
+st.metric("Buffer to liquidation ($)", f"{buffer:,.0f}")
