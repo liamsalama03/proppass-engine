@@ -1,3 +1,17 @@
+import sys
+from pathlib import Path
+
+# Ensure src/ is on Python path (required for Streamlit Cloud)
+sys.path.append(str(Path(__file__).parent / "src"))
+
+import streamlit as st
+
+from proppass.drawdown import (
+    buffer_to_floor,
+    compute_trailing_state,
+    update_high_water_mark,
+)
+
 import streamlit as st
 
 from proppass.drawdown import (
