@@ -1,23 +1,35 @@
 from __future__ import annotations
-from proppass.drawdown import update_high_water_mark, trailing_dd_line
+
+# =========================
+# Standard library imports
+# =========================
 import sys
 from pathlib import Path
-from proppass.drawdown import compute_trailing_state
-import streamlit as st
 
-# -----------------------------
-# Bootstrapping: make src/ importable on Streamlit Cloud
-# -----------------------------
+# =========================
+# Bootstrap: make src/ importable (Streamlit Cloud)
+# =========================
 ROOT = Path(__file__).resolve().parent
 SRC_DIR = ROOT / "src"
-if SRC_DIR.exists():
+
+if SRC_DIR.exists() and str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-# -----------------------------
-# Imports from your engine (after sys.path tweak)
-# -----------------------------
-try:
-    from proppass.drawdown import (
+# =========================
+# Third-party imports
+# =========================
+import streamlit as st
+
+# =========================
+# Engine imports (MUST be after sys.path tweak)
+# =========================
+from proppass.drawdown import (
+    # simple helpers
+    update_high_water_mark,
+    trailing_dd_line,
+    compute_trailing_state,
+
+    # types + core bundle functions (as referenced earlier)
     DDType,
     DDResult,
     calc_dd_bundle,
@@ -25,86 +37,42 @@ try:
     calc_remaining_profit,
     calc_effective_risk_cap,
 )
-except ModuleNotFoundError as e:
-    st.set_page_config(page_title="PropPass Engine", layout="centered")
-    st.title("PropPass Engine 🚦")
-    st.error("App failed to import the engine package (`proppass`).")
-    st.write("This usually means one of these is true:")
-    st.markdown(
-        """
-- You don't have `src/proppass/` in the repo
-- `src/proppass/__init__.py` is missing
-- Folder name casing is wrong (`PropPass` vs `proppass`)
-- `app.py` can't see the `src/` directory
-"""
-    )
-    st.write("Debug info:")
-    st.code(
-        f"ROOT = {ROOT}\n"
-        f"SRC_DIR exists = {SRC_DIR.exists()}\n"
-        f"sys.path[0:5] = {sys.path[0:5]}\n"
-        f"Error = {repr(e)}"
-    )
-    st.stop()
 
-# -----------------------------
-# Streamlit UI
-# -----------------------------
+# =========================
+# Page config
+# =========================
 st.set_page_config(page_title="PropPass Engine", layout="centered")
 
 st.title("PropPass Engine 🚦")
-st.caption("Prop firm evaluation risk & sizing engine")
+
+# -------------------------
+# Minimal UI (safe baseline)
+# -------------------------
+start_balance = st.number_input("Starting balance ($)", min_value=0.0, value=50_000.0, step=100.0)
+max_dd = st.number_input("Max drawdown ($)", min_value=0.0, value=2_000.0, step=50.0)
+equity = st.number_input("Current equity ($)", min_value=0.0, value=50_000.0, step=100.0)
 
 st.divider()
-
-st.header("Inputs")
-
-start_balance = st.number_input(
-    "Starting balance ($)",
-    min_value=0.0,
-    step=500.0,
-    value=50_000.0,
-    format="%.2f",
-)
-
-max_dd = st.number_input(
-    "Max drawdown ($)",
-    min_value=1.0,
-    step=100.0,
-    value=2_000.0,
-    format="%.2f",
-)
-
-equity = st.number_input(
-    "Current equity ($)",
-    min_value=0.0,
-    step=100.0,
-    value=50_000.0,
-    format="%.2f",
-)
-
-st.divider()
-
 st.header("Results")
 
+# -------------------------
+# Core logic (will error only if engine is missing functions)
+# -------------------------
 hwm = update_high_water_mark(start_balance, equity)
+
+# If you use compute_trailing_state in your app:
 state = compute_trailing_state(hwm, max_dd)
-buffer = buffer_to_floor(equity, state.dd_floor)
+
+# If you also want direct dd line:
+dd_line = trailing_dd_line(hwm, max_dd)
 
 col1, col2 = st.columns(2)
 with col1:
-    st.metric("High-water mark ($)", f"{hwm:,.2f}")
-    st.metric("Drawdown floor ($)", f"{state.dd_floor:,.2f}")
-
+    st.metric("High Water Mark (HWM)", f"${hwm:,.2f}")
+    st.metric("Trailing DD Line", f"${dd_line:,.2f}")
 with col2:
-    st.metric("Buffer to liquidation ($)", f"{buffer:,.2f}")
-    pct = (buffer / max_dd) * 100 if max_dd else 0.0
-    st.metric("Buffer (% of DD)", f"{pct:.1f}%")
+    # state should have a trailing_line attribute if you implemented it that way
+    st.metric("State.trailing_line", f"${getattr(state, 'trailing_line', float('nan')):,.2f}")
 
-# Simple risk light (placeholder thresholds — we’ll formalize later)
-if buffer <= 0:
-    st.error("🔴 Liquidation triggered (buffer ≤ 0).")
-elif buffer / max_dd < 0.25:
-    st.warning("🟠 Tight buffer (< 25%). Reduce size / protect equity.")
-else:
-    st.success("🟢 Healthy buffer (≥ 25%).")
+st.caption("If you get an import error now, it means the referenced functions/types are missing in src/proppass/drawdown.py.")
+
