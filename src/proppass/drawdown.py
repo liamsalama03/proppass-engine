@@ -88,3 +88,17 @@ def format_breach_message(value: Optional[float]) -> str:
     if value <= 0:
         return "Breaches limit"
     return f"{value:.0f}"
+def update_high_water_mark(previous_hwm: float, current_equity: float) -> float:
+    """
+    High-water mark = max equity reached so far.
+    If you don't track history yet, treat previous_hwm as starting balance.
+    """
+    return max(float(previous_hwm), float(current_equity))
+
+
+def trailing_dd_line(hwm: float, max_drawdown: float) -> float:
+    """
+    Trailing threshold line = HWM - maxDD.
+    Breach occurs if equity < this line.
+    """
+    return float(hwm) - float(max_drawdown)
