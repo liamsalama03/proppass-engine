@@ -102,3 +102,18 @@ def trailing_dd_line(hwm: float, max_drawdown: float) -> float:
     Breach occurs if equity < this line.
     """
     return float(hwm) - float(max_drawdown)
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class TrailingState:
+    hwm: float
+    trailing_line: float
+
+def compute_trailing_state(hwm: float, max_drawdown: float) -> TrailingState:
+    """
+    Returns the trailing DD threshold line for TRUE_TRAIL style:
+      trailing_line = HWM - maxDD
+    """
+    hwm = float(hwm)
+    max_drawdown = float(max_drawdown)
+    return TrailingState(hwm=hwm, trailing_line=hwm - max_drawdown)
