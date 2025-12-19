@@ -2,7 +2,7 @@ from __future__ import annotations
 from proppass.drawdown import update_high_water_mark, trailing_dd_line
 import sys
 from pathlib import Path
-
+from proppass.drawdown import compute_trailing_state
 import streamlit as st
 
 # -----------------------------
