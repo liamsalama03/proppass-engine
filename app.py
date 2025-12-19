@@ -25,8 +25,6 @@ try:
     calc_remaining_profit,
     calc_effective_risk_cap,
 )
-
-    )
 except ModuleNotFoundError as e:
     st.set_page_config(page_title="PropPass Engine", layout="centered")
     st.title("PropPass Engine 🚦")
