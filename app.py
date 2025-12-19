@@ -18,9 +18,14 @@ if SRC_DIR.exists():
 # -----------------------------
 try:
     from proppass.drawdown import (
-        buffer_to_floor,
-        compute_trailing_state,
-        update_high_water_mark,
+    DDType,
+    DDResult,
+    calc_dd_bundle,
+    calc_remaining_total_dd,
+    calc_remaining_profit,
+    calc_effective_risk_cap,
+)
+
     )
 except ModuleNotFoundError as e:
     st.set_page_config(page_title="PropPass Engine", layout="centered")
