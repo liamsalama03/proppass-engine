@@ -1,3 +1,5 @@
+from proppass.drawdown import update_high_water_mark, trailing_dd_line
+
 from __future__ import annotations
 
 import sys
