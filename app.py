@@ -298,7 +298,7 @@ state, used_call = safe_compute_trailing_state(
     hwm=hwm,
 )
 
-  line = getattr(state, "trailing_line", None)
+line = getattr(state, "trailing_line", None)
 if line is None:
     # fallback if compute_trailing_state returns dict instead of object
     line = state.get("trailing_line") if isinstance(state, dict) else None
