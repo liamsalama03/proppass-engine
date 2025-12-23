@@ -290,6 +290,14 @@ with tab_dash:
         equity = st.number_input("Current equity ($)", value=float(default_start_balance), step=100.0)
 
     # --- Engine calculation (HWM + trailing line) ---
+# --- HWM calculation (must exist before calling trailing engine) ---
+# For TRUE_TRAIL, HWM follows equity (intraday). For BALANCE/EOD types, HWM follows closed balance.
+closed_balance = start_balance + float(realized_pnl)  # realized_pnl already exists in your app
+if dd_type in ("BALANCE_TRAIL", "EOD_TRAIL"):
+    hwm = max(start_balance, closed_balance)
+else:  # TRUE_TRAIL
+    hwm = max(start_balance, equity)
+
 state, used_call = safe_compute_trailing_state(
     compute_trailing_state,
     start_balance=start_balance,
