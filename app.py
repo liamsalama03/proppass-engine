@@ -15,6 +15,41 @@ import streamlit as st
 # ============================================================
 # 0) Streamlit page config (MUST be before most UI calls)
 # ============================================================
+import inspect
+
+def safe_compute_trailing_state(compute_fn, *, start_balance: float, equity: float, max_dd: float, hwm: float):
+    """
+    Calls compute_trailing_state no matter which signature you currently have in drawdown.py.
+    Tries a few common patterns and raises the real TypeError if none match.
+    """
+    attempts = [
+        ("(hwm, max_dd)", lambda: compute_fn(hwm, max_dd)),
+        ("(hwm=hwm, max_dd=max_dd)", lambda: compute_fn(hwm=hwm, max_dd=max_dd)),
+        ("(start_balance, equity, max_dd)", lambda: compute_fn(start_balance, equity, max_dd)),
+        ("(start_balance=start_balance, equity=equity, max_dd=max_dd)",
+         lambda: compute_fn(start_balance=start_balance, equity=equity, max_dd=max_dd)),
+        ("(equity, max_dd)", lambda: compute_fn(equity, max_dd)),
+        ("(equity=equity, max_dd=max_dd)", lambda: compute_fn(equity=equity, max_dd=max_dd)),
+    ]
+
+    last_err = None
+    for label, call in attempts:
+        try:
+            return call(), label
+        except TypeError as e:
+            last_err = e
+
+    sig = None
+    try:
+        sig = str(inspect.signature(compute_fn))
+    except Exception:
+        sig = "(unable to inspect signature)"
+
+    raise TypeError(
+        f"compute_trailing_state signature mismatch. "
+        f"Tried {len(attempts)} call patterns. "
+        f"Signature is {sig}. Last error: {last_err}"
+    )
 
 st.set_page_config(page_title="PropPass Engine", layout="wide")
 
