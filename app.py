@@ -73,7 +73,7 @@ try:
     update_high_water_mark,
     compute_trailing_state,
 )
-    )
+)
 except ModuleNotFoundError as e:
     st.error("App failed to import the engine package (proppass).")
     st.code(
