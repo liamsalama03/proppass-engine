@@ -291,8 +291,14 @@ with tab_dash:
         equity = st.number_input("Current equity ($)", value=float(default_start_balance), step=100.0)
 
     # --- Engine calculation (HWM + trailing line) ---
-    hwm = update_high_water_mark(start_balance, equity)
-    state = compute_trailing_state(hwm, max_dd)
+state, used_call = safe_compute_trailing_state(
+    compute_trailing_state,
+    start_balance=start_balance,
+    equity=equity,
+    max_dd=max_dd,
+    hwm=hwm,
+)
+
   line = getattr(state, "trailing_line", None)
 if line is None:
     # fallback if compute_trailing_state returns dict instead of object
