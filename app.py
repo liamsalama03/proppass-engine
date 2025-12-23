@@ -33,10 +33,11 @@ if SRC_DIR.exists():
 # ============================================================
 
 try:
-    from proppass.drawdown import (
-        update_high_water_mark,
-        compute_trailing_state,
-        trailing_dd_line,
+    
+     from proppass.drawdown import (
+    update_high_water_mark,
+    compute_trailing_state,
+)
     )
 except ModuleNotFoundError as e:
     st.error("App failed to import the engine package (proppass).")
@@ -257,7 +258,11 @@ with tab_dash:
     # --- Engine calculation (HWM + trailing line) ---
     hwm = update_high_water_mark(start_balance, equity)
     state = compute_trailing_state(hwm, max_dd)
-    line = trailing_dd_line(state)
+  line = getattr(state, "trailing_line", None)
+if line is None:
+    # fallback if compute_trailing_state returns dict instead of object
+    line = state.get("trailing_line") if isinstance(state, dict) else None
+
 
     st.divider()
     st.subheader("Results")
