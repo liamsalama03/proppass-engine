@@ -293,11 +293,11 @@ with tab_dash:
 # --- HWM calculation (must exist before calling trailing engine) ---
 # For TRUE_TRAIL, HWM follows equity (intraday). For BALANCE/EOD types, HWM follows closed balance.
 # Grab realized PnL from whatever you called it in the sidebar
-realized_pnl_val = locals().get("realized_pnl", None)
-if realized_pnl_val is None:
-    realized_pnl_val = locals().get("current_realized_pnl", 0.0)
 
-closed_balance = start_balance + float(realized_pnl_val)
+
+closed_balance = realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+closed_balance = start_balance + float(realized_pnl)
+
 
 if dd_type in ("BALANCE_TRAIL", "EOD_TRAIL"):
     hwm = max(start_balance, closed_balance)
