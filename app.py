@@ -80,7 +80,6 @@ from proppass.engine import compute
 
 CFG = load_config("data/propfirms.csv")
 
-st.title("PropPass Engine 🚦")
 
 with st.sidebar:
     st.header("Inputs")
