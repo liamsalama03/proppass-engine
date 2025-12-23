@@ -1,26 +1,40 @@
 from __future__ import annotations
 
 # ============================================================
-# PropPass Engine — Streamlit App
+# PropPass Engine — Streamlit App (Clean, Sidebar-Controlled)
 # ============================================================
 
 import sys
 from pathlib import Path
-from dataclasses import asdict
 from typing import Optional
+import inspect
 
 import pandas as pd
 import streamlit as st
 
-# ============================================================
-# 0) Streamlit page config (MUST be before most UI calls)
-# ============================================================
-import inspect
 
-def safe_compute_trailing_state(compute_fn, *, start_balance: float, equity: float, max_dd: float, hwm: float):
+# ============================================================
+# 0) Page config (MUST be before most UI calls)
+# ============================================================
+
+st.set_page_config(page_title="PropPass Engine", layout="wide")
+
+
+# ============================================================
+# 1) Signature-safe wrapper for compute_trailing_state
+# ============================================================
+
+def safe_compute_trailing_state(
+    compute_fn,
+    *,
+    start_balance: float,
+    equity: float,
+    max_dd: float,
+    hwm: float,
+):
     """
-    Calls compute_trailing_state no matter which signature you currently have in drawdown.py.
-    Tries a few common patterns and raises the real TypeError if none match.
+    Calls compute_trailing_state no matter which signature exists in drawdown.py.
+    Tries common patterns, raises the real TypeError if none match.
     """
     attempts = [
         ("(hwm, max_dd)", lambda: compute_fn(hwm, max_dd)),
@@ -39,7 +53,6 @@ def safe_compute_trailing_state(compute_fn, *, start_balance: float, equity: flo
         except TypeError as e:
             last_err = e
 
-    sig = None
     try:
         sig = str(inspect.signature(compute_fn))
     except Exception:
@@ -51,11 +64,9 @@ def safe_compute_trailing_state(compute_fn, *, start_balance: float, equity: flo
         f"Signature is {sig}. Last error: {last_err}"
     )
 
-st.set_page_config(page_title="PropPass Engine", layout="wide")
 
 # ============================================================
-# 1) Bootstrapping: make /src importable on Streamlit Cloud
-#    IMPORTANT: Do this BEFORE importing your local package.
+# 2) Bootstrapping: make /src importable on Streamlit Cloud
 # ============================================================
 
 ROOT = Path(__file__).resolve().parent
@@ -63,16 +74,16 @@ SRC_DIR = ROOT / "src"
 if SRC_DIR.exists():
     sys.path.insert(0, str(SRC_DIR))
 
+
 # ============================================================
-# 2) Import your engine (after sys.path tweak)
+# 3) Import your engine (after sys.path tweak)
 # ============================================================
 
 try:
-    
-     from proppass.drawdown import (
-    update_high_water_mark,
-    compute_trailing_state,
-)
+    from proppass.drawdown import (
+        update_high_water_mark,   # keep import if you use it later
+        compute_trailing_state,
+    )
 except ModuleNotFoundError as e:
     st.error("App failed to import the engine package (proppass).")
     st.code(
@@ -81,10 +92,9 @@ except ModuleNotFoundError as e:
     )
     st.stop()
 
+
 # ============================================================
-# 3) Config loading
-#    - Prefer data/prop_firms.csv (so you can edit without code changes)
-#    - Otherwise fallback to embedded CSV (your pasted config)
+# 4) Config loading
 # ============================================================
 
 EMBEDDED_CSV = """Firm,AccountSize,DailyMaxLoss,TotalMaxDD,ProfitTarget,FirmMaxContracts,DDType,Mode,RiskFracDailyDDPerTrade
@@ -128,6 +138,7 @@ FundingTicks,50K (Zero),N/A,2000,N/A,3,TRUE_TRAIL,,
 FundingTicks,100K (Zero),N/A,3000,N/A,5,TRUE_TRAIL,,
 """
 
+
 def _to_number(x) -> Optional[float]:
     if x is None:
         return None
@@ -139,6 +150,7 @@ def _to_number(x) -> Optional[float]:
     except ValueError:
         return None
 
+
 @st.cache_data(show_spinner=False)
 def load_config() -> pd.DataFrame:
     csv_path = ROOT / "data" / "prop_firms.csv"
@@ -148,59 +160,86 @@ def load_config() -> pd.DataFrame:
         from io import StringIO
         df = pd.read_csv(StringIO(EMBEDDED_CSV))
 
-    # Clean numeric columns
     for col in ["DailyMaxLoss", "TotalMaxDD", "ProfitTarget", "FirmMaxContracts", "RiskFracDailyDDPerTrade"]:
         if col in df.columns:
             df[col] = df[col].apply(_to_number)
 
-    # Normalize strings
     for col in ["Firm", "AccountSize", "DDType", "Mode"]:
         if col in df.columns:
             df[col] = df[col].fillna("").astype(str).str.strip()
 
     return df
 
+
 CFG = load_config()
 
-# ============================================================
-# 4) Header + Tabs wrapper (THIS is what you were asking about)
-# ============================================================
-
-st.title("PropPass Engine 🚦")
-
-tab_dash, tab_rule, tab_debug = st.tabs(["Dashboard", "Rule details", "Debug"])
 
 # ============================================================
-# 5) Sidebar Inputs
+# 5) Styling (simple, clean “dashboard” feel)
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+      .block-container { padding-top: 1.2rem; padding-bottom: 2.5rem; }
+      [data-testid="stMetricValue"] { font-size: 1.6rem; }
+      [data-testid="stMetricLabel"] { font-size: 0.95rem; opacity: 0.85; }
+      .soft-card {
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px;
+        padding: 18px 18px 8px 18px;
+        background: rgba(255,255,255,0.03);
+      }
+      .muted { opacity: 0.75; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# 6) Sidebar — SINGLE control center (all inputs live here)
 # ============================================================
 
 firms = sorted([x for x in CFG["Firm"].unique() if x])
 default_firm = firms[0] if firms else ""
 
 with st.sidebar:
-    st.header("Inputs")
+    st.title("Controls")
+    st.caption("All inputs live here. Main page is outputs only.")
 
-    firm = st.selectbox("Prop firm", firms, index=firms.index(default_firm) if default_firm in firms else 0)
-    df_firm = CFG[CFG["Firm"] == firm].copy()
+    with st.form("controls_form", border=False):
+        firm = st.selectbox("Prop firm", firms, index=firms.index(default_firm) if default_firm in firms else 0)
+        df_firm = CFG[CFG["Firm"] == firm].copy()
 
-    accounts = [x for x in df_firm["AccountSize"].unique() if x]
-    account = st.selectbox("Account", sorted(accounts))
+        accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
+        account = st.selectbox("Account", accounts)
 
-    instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
+        st.divider()
 
-    win_rate_pct = st.slider("Win rate (%)", min_value=1, max_value=99, value=56)
-    win_rate = win_rate_pct / 100.0
+        instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
+        risk_mode = st.radio("Risk mode", ["Safe", "Standard", "Aggressive"], horizontal=True, index=1)
 
-    r_multiple = st.number_input("R multiple (avg win / avg loss)", min_value=0.1, max_value=10.0, value=2.0, step=0.1)
-    stop_points = st.number_input("Stop size (points)", min_value=0.25, max_value=500.0, value=30.0, step=0.25)
+        st.divider()
 
-    current_realized = st.number_input("Current realized PnL ($)", value=1740.0, step=50.0)
+        win_rate_pct = st.slider("Win rate (%)", min_value=1, max_value=99, value=56)
+        r_multiple = st.number_input("R multiple (avg win / avg loss)", min_value=0.1, max_value=10.0, value=2.0, step=0.1)
+        stop_points = st.number_input("Stop size (points)", min_value=0.25, max_value=500.0, value=30.0, step=0.25)
 
-    st.subheader("Risk mode")
-    risk_mode = st.radio(" ", ["Safe", "Standard", "Aggressive"], horizontal=True, index=1)
+        st.divider()
+        st.subheader("Account state")
+
+        start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
+        equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
+        realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+
+        show_debug = st.checkbox("Show debug panel", value=False)
+
+        submitted = st.form_submit_button("Update dashboard", use_container_width=True)
+
 
 # ============================================================
-# 6) Lookup firm rule row
+# 7) Rule lookup
 # ============================================================
 
 rule_row = df_firm[df_firm["AccountSize"] == account]
@@ -211,55 +250,50 @@ if rule_row.empty:
 rule = rule_row.iloc[0].to_dict()
 
 daily_max_loss = rule.get("DailyMaxLoss")  # can be None
-total_max_dd = rule.get("TotalMaxDD") or 0.0
-profit_target = rule.get("ProfitTarget") or 0.0
+total_max_dd = float(rule.get("TotalMaxDD") or 0.0)
+profit_target = float(rule.get("ProfitTarget") or 0.0)
 firm_max_contracts = int(rule.get("FirmMaxContracts") or 0)
-dd_type = rule.get("DDType") or ""
+dd_type = (rule.get("DDType") or "").strip()
 
-# Starting balance assumption (you can later derive from account size string if you want)
-# For now: user can override these in Dashboard tab using inputs.
-default_start_balance = 50000.0
-
-# Tick value / point value mapping
-# NQ: $20/point, MNQ: $2/point
+# Instrument point value
 point_value = 20.0 if instrument == "NQ" else 2.0
 
+# If daily max loss is N/A, use total DD as practical cap for sizing
+risk_budget = daily_max_loss if (daily_max_loss is not None and daily_max_loss > 0) else total_max_dd
+
+# Risk frac (config or fallback ladder)
+risk_frac = rule.get("RiskFracDailyDDPerTrade")  # optional
+fallback_frac = {"Safe": 0.10, "Standard": 0.15, "Aggressive": 0.25}[risk_mode]
+risk_frac_effective = risk_frac if (risk_frac is not None and risk_frac > 0) else fallback_frac
+
+
 # ============================================================
-# 7) Derived metrics (Expected edge, trades to target, etc.)
+# 8) Derived metrics (edge, sizing, pass probability)
 # ============================================================
 
-# Expected value per trade in R:
-# EV_R = p*(+R) - (1-p)*(1)
+win_rate = win_rate_pct / 100.0
+
+# EV per trade in R
 ev_r = (win_rate * r_multiple) - ((1.0 - win_rate) * 1.0)
 
 # $ risk per contract per trade
 risk_per_contract = stop_points * point_value
 
-# Risk frac lookup (optional per mode)
-risk_frac = rule.get("RiskFracDailyDDPerTrade")  # config-based (may be None)
-# If config doesn't specify per-mode, fall back to a simple default ladder:
-fallback_frac = {"Safe": 0.10, "Standard": 0.15, "Aggressive": 0.25}[risk_mode]
-risk_frac_effective = risk_frac if (risk_frac is not None and risk_frac > 0) else fallback_frac
-
-# If daily max loss is N/A, use total DD as the practical cap for sizing.
-risk_budget = daily_max_loss if (daily_max_loss is not None and daily_max_loss > 0) else total_max_dd
-
-# Contracts allowed by risk budget
+# Contracts allowed by risk budget fraction
 contracts_by_risk = int(max(0, (risk_budget * risk_frac_effective) // max(risk_per_contract, 1e-9)))
 active_contracts = max(0, min(firm_max_contracts, contracts_by_risk))
 
 # Expected edge per trade ($)
 expected_edge_dollars = ev_r * risk_per_contract * max(active_contracts, 1)
 
-# Remaining profit to target (based on realized)
+# Remaining profit to target
+current_realized = float(realized_pnl)
 remaining_profit = max(0.0, profit_target - current_realized)
 
-# Estimated trades to target (using EV$; if negative EV, it's infinite / not feasible)
 estimated_trades = None
 if expected_edge_dollars > 0:
     estimated_trades = remaining_profit / expected_edge_dollars
 
-# Simple pass probability label (you can refine later)
 def pass_bucket(ev_r_val: float, trades_needed: Optional[float]) -> str:
     if ev_r_val <= 0:
         return "Low (negative edge)"
@@ -274,77 +308,125 @@ def pass_bucket(ev_r_val: float, trades_needed: Optional[float]) -> str:
 pass_label = pass_bucket(ev_r, estimated_trades)
 pass_pct = {"High": 88, "Moderate": 79, "Low": 55}.get(pass_label.split()[0], 70)
 
+
 # ============================================================
-# 8) Dashboard tab (what users see)
+# 9) Drawdown Engine (HWM + trailing line)
 # ============================================================
 
-with tab_dash:
-    st.subheader("Inputs (DD Engine Test)")
-    c1, c2, c3 = st.columns(3)
+closed_balance = float(start_balance) + float(realized_pnl)
 
-    with c1:
-        start_balance = st.number_input("Starting balance ($)", value=float(default_start_balance), step=500.0)
-    with c2:
-        max_dd = st.number_input("Max drawdown ($)", value=float(total_max_dd), step=100.0)
-    with c3:
-        equity = st.number_input("Current equity ($)", value=float(default_start_balance), step=100.0)
-
-    # --- Engine calculation (HWM + trailing line) ---
-# --- HWM calculation (must exist before calling trailing engine) ---
-# For TRUE_TRAIL, HWM follows equity (intraday). For BALANCE/EOD types, HWM follows closed balance.
-# Grab realized PnL from whatever you called it in the sidebar
-
-
-closed_balance = realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
-closed_balance = start_balance + float(realized_pnl)
-
-
+# HWM policy: balance/eod uses closed balance; true trail uses equity
 if dd_type in ("BALANCE_TRAIL", "EOD_TRAIL"):
-    hwm = max(start_balance, closed_balance)
-else:  # TRUE_TRAIL
-    hwm = max(start_balance, equity)
+    hwm = max(float(start_balance), closed_balance)
+else:
+    hwm = max(float(start_balance), float(equity))
 
-state, used_call = safe_compute_trailing_state(
-    compute_trailing_state,
-    start_balance=start_balance,
-    equity=equity,
-    max_dd=max_dd,
-    hwm=hwm,
-)
+try:
+    state, used_call = safe_compute_trailing_state(
+        compute_trailing_state,
+        start_balance=float(start_balance),
+        equity=float(equity),
+        max_dd=float(total_max_dd),
+        hwm=float(hwm),
+    )
+except Exception as e:
+    state, used_call = None, None
+    st.error("Drawdown engine error")
+    st.exception(e)
 
-line = getattr(state, "trailing_line", None)
-if line is None:
-    # fallback if compute_trailing_state returns dict instead of object
-    line = state.get("trailing_line") if isinstance(state, dict) else None
+trailing_line = None
+if state is not None:
+    trailing_line = getattr(state, "trailing_line", None)
+    if trailing_line is None and isinstance(state, dict):
+        trailing_line = state.get("trailing_line")
 
-
-    st.divider()
-    st.subheader("Results")
-
-    r1, r2, r3 = st.columns(3)
-    r1.metric("High Water Mark (HWM)", f"${hwm:,.2f}")
-    r2.metric("Trailing DD Line", f"${line:,.2f}")
-    r3.metric("State.trailing_line", f"${getattr(state, 'trailing_line', line):,.2f}")
-
-    st.divider()
-
-    # --- Trade sizing / probability ---
-    s1, s2, s3, s4 = st.columns(4)
-    s1.metric("Active contracts", f"{active_contracts}")
-    s2.metric("Expected edge / trade", f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—")
-    s3.metric("Est. trades to target", f"{estimated_trades:,.2f}" if estimated_trades is not None else "—")
-    s4.metric("Pass probability", f"{pass_label} ({pass_pct}% est.)")
 
 # ============================================================
-# 9) Rule details tab (transparency)
+# 10) MAIN PAGE (outputs only)
 # ============================================================
 
-with tab_rule:
-    st.subheader("Loaded config row")
-    st.caption("This is the exact rule row your calculations are using.")
+st.title("PropPass Engine 🚦")
+st.caption("Sidebar controls everything. This page is outputs only.")
 
-    pretty = rule.copy()
-    st.dataframe(pd.DataFrame([pretty]))
+# --- Top KPIs ---
+k1, k2, k3, k4 = st.columns(4)
+k1.metric("Firm / Account", f"{firm} — {account}")
+k2.metric("DD Type", dd_type or "—")
+k3.metric("Instrument", instrument)
+k4.metric("Risk mode", risk_mode)
+
+st.write("")
+
+# --- Performance / Target card ---
+st.markdown('<div class="soft-card">', unsafe_allow_html=True)
+st.subheader("Progress to Target")
+
+p1, p2, p3, p4 = st.columns(4)
+p1.metric("Profit target", f"${profit_target:,.0f}" if profit_target > 0 else "N/A")
+p2.metric("Realized PnL", f"${current_realized:,.0f}")
+p3.metric("Remaining", f"${remaining_profit:,.0f}" if profit_target > 0 else "—")
+p4.metric("Pass probability (est.)", f"{pass_label} ({pass_pct}%)")
+
+if profit_target > 0:
+    progress = min(1.0, max(0.0, current_realized / profit_target))
+    st.progress(progress, text=f"{progress*100:.1f}% of target reached")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+st.write("")
+
+# --- Risk / Sizing card ---
+st.markdown('<div class="soft-card">', unsafe_allow_html=True)
+st.subheader("Sizing & Edge")
+
+s1, s2, s3, s4 = st.columns(4)
+s1.metric("Risk per contract", f"${risk_per_contract:,.2f}")
+s2.metric("Risk budget", f"${risk_budget:,.0f}" if risk_budget > 0 else "—")
+s3.metric("Max contracts (rule)", f"{firm_max_contracts}")
+s4.metric("Active contracts (by risk)", f"{active_contracts}")
+
+e1, e2, e3, e4 = st.columns(4)
+e1.metric("Win rate", f"{win_rate_pct}%")
+e2.metric("R multiple", f"{r_multiple:.2f}R")
+e3.metric("EV (R)", f"{ev_r:.3f}")
+e4.metric("Expected edge / trade", f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—")
+
+t1, t2, t3 = st.columns(3)
+t1.metric("Trades to target (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
+t2.metric("Stop (points)", f"{stop_points:g}")
+t3.metric("Point value", f"${point_value:,.0f}/pt")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+st.write("")
+
+# --- Drawdown engine card ---
+st.markdown('<div class="soft-card">', unsafe_allow_html=True)
+st.subheader("Drawdown Engine")
+
+d1, d2, d3, d4 = st.columns(4)
+d1.metric("Start balance", f"${float(start_balance):,.0f}")
+d2.metric("Equity", f"${float(equity):,.0f}")
+d3.metric("Closed balance", f"${closed_balance:,.0f}")
+d4.metric("Max DD", f"${total_max_dd:,.0f}")
+
+dd1, dd2, dd3 = st.columns(3)
+dd1.metric("High Water Mark (HWM)", f"${hwm:,.2f}")
+dd2.metric("Trailing line", f"${trailing_line:,.2f}" if trailing_line is not None else "—")
+dd3.metric("Engine call used", used_call or "—")
+
+if trailing_line is not None:
+    buffer_amt = float(equity) - float(trailing_line)
+    st.caption(f"Buffer to trailing line: ${buffer_amt:,.2f} (equity − trailing line)")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+st.write("")
+
+# --- Rule details (outputs only) ---
+with st.expander("Rule details (what this account is using)", expanded=False):
+    st.caption("This is the exact config row driving the dashboard.")
+    st.dataframe(pd.DataFrame([rule]), use_container_width=True)
 
     st.markdown("**Interpretation**")
     st.write(f"- **Firm / Account:** {firm} — {account}")
@@ -354,40 +436,41 @@ with tab_rule:
     st.write(f"- **Profit target:** {('N/A' if profit_target <= 0 else f'${profit_target:,.0f}')}")
     st.write(f"- **Firm max contracts:** {firm_max_contracts}")
 
-# ============================================================
-# 10) Debug tab (for you)
-# ============================================================
-
-with tab_debug:
-    st.subheader("Debug / Internals")
-
-    debug = {
-        "firm": firm,
-        "account": account,
-        "instrument": instrument,
-        "point_value": point_value,
-        "win_rate": win_rate,
-        "r_multiple": r_multiple,
-        "stop_points": stop_points,
-        "risk_per_contract": risk_per_contract,
-        "ev_r": ev_r,
-        "risk_frac_effective": risk_frac_effective,
-        "risk_budget": risk_budget,
-        "contracts_by_risk": contracts_by_risk,
-        "firm_max_contracts": firm_max_contracts,
-        "active_contracts": active_contracts,
-        "expected_edge_dollars": expected_edge_dollars,
-        "profit_target": profit_target,
-        "current_realized": current_realized,
-        "remaining_profit": remaining_profit,
-        "estimated_trades": estimated_trades,
-        "dd_type": dd_type,
-        "start_balance": default_start_balance,
-        "hwm": hwm,
-        "max_dd": total_max_dd,
-        "equity": None,
-    }
-
-    st.json(debug)
-
-    st.caption("If something looks off, this tab usually tells you *why* in 10 seconds.")
+# --- Debug (hidden unless enabled) ---
+if show_debug:
+    with st.expander("Debug / Internals", expanded=True):
+        debug = {
+            "firm": firm,
+            "account": account,
+            "instrument": instrument,
+            "point_value": point_value,
+            "risk_mode": risk_mode,
+            "win_rate_pct": win_rate_pct,
+            "win_rate": win_rate,
+            "r_multiple": r_multiple,
+            "stop_points": stop_points,
+            "risk_per_contract": risk_per_contract,
+            "ev_r": ev_r,
+            "risk_frac_effective": risk_frac_effective,
+            "risk_budget": risk_budget,
+            "contracts_by_risk": contracts_by_risk,
+            "firm_max_contracts": firm_max_contracts,
+            "active_contracts": active_contracts,
+            "expected_edge_dollars": expected_edge_dollars,
+            "profit_target": profit_target,
+            "current_realized": current_realized,
+            "remaining_profit": remaining_profit,
+            "estimated_trades": estimated_trades,
+            "dd_type": dd_type,
+            "start_balance": float(start_balance),
+            "equity": float(equity),
+            "realized_pnl": float(realized_pnl),
+            "closed_balance": float(closed_balance),
+            "hwm": float(hwm),
+            "max_dd": float(total_max_dd),
+            "trailing_line": float(trailing_line) if trailing_line is not None else None,
+            "engine_call_used": used_call,
+            "state_type": type(state).__name__ if state is not None else None,
+        }
+        st.json(debug)
+        st.caption("If something looks off, this panel usually tells you why fast.")
