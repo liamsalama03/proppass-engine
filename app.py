@@ -198,7 +198,7 @@ st.markdown(
 
 
 # ============================================================
-# 6) Sidebar — SINGLE control center (all inputs live here)
+# 6) Sidebar — firm/account update instantly, rest uses a form
 # ============================================================
 
 firms = sorted([x for x in CFG["Firm"].unique() if x])
@@ -208,23 +208,41 @@ with st.sidebar:
     st.title("Controls")
     st.caption("All inputs live here. Main page is outputs only.")
 
+    # --- Instant controls (NOT in the form) ---
+    firm = st.selectbox(
+        "Prop firm",
+        firms,
+        index=firms.index(default_firm) if default_firm in firms else 0,
+    )
+    df_firm = CFG[CFG["Firm"] == firm].copy()
+
+    accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
+    account = st.selectbox("Account", accounts)
+
+    st.divider()
+
+    # --- Form controls (only apply when user clicks Update) ---
     with st.form("controls_form", border=False):
-        firm = st.selectbox("Prop firm", firms, index=firms.index(default_firm) if default_firm in firms else 0)
-        df_firm = CFG[CFG["Firm"] == firm].copy()
-
-        accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
-        account = st.selectbox("Account", accounts)
-
-        st.divider()
-
         instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
         risk_mode = st.radio("Risk mode", ["Safe", "Standard", "Aggressive"], horizontal=True, index=1)
 
         st.divider()
 
         win_rate_pct = st.slider("Win rate (%)", min_value=1, max_value=99, value=56)
-        r_multiple = st.number_input("R multiple (avg win / avg loss)", min_value=0.1, max_value=10.0, value=2.0, step=0.1)
-        stop_points = st.number_input("Stop size (points)", min_value=0.25, max_value=500.0, value=30.0, step=0.25)
+        r_multiple = st.number_input(
+            "R multiple (avg win / avg loss)",
+            min_value=0.1,
+            max_value=10.0,
+            value=2.0,
+            step=0.1,
+        )
+        stop_points = st.number_input(
+            "Stop size (points)",
+            min_value=0.25,
+            max_value=500.0,
+            value=30.0,
+            step=0.25,
+        )
 
         st.divider()
         st.subheader("Account state")
@@ -236,6 +254,9 @@ with st.sidebar:
         show_debug = st.checkbox("Show debug panel", value=False)
 
         submitted = st.form_submit_button("Update dashboard", use_container_width=True)
+# If the form hasn't been submitted yet, Streamlit still provides widget values,
+# so you don't need special fallback logic. (This is just a safety note.)
+
 
 
 # ============================================================
