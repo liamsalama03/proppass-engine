@@ -208,18 +208,31 @@ with st.sidebar:
     st.title("Controls")
     st.caption("All inputs live here. Main page is outputs only.")
 
-    # --- Instant controls (NOT in the form) ---
-    firm = st.selectbox(
-        "Prop firm",
-        firms,
-        index=firms.index(default_firm) if default_firm in firms else 0,
-    )
-    df_firm = CFG[CFG["Firm"] == firm].copy()
+  # --- Instant controls (NOT in the form) ---
+if "firm_sel" not in st.session_state:
+    st.session_state.firm_sel = default_firm
+if "account_sel" not in st.session_state:
+    st.session_state.account_sel = None
 
-    accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
-    account = st.selectbox("Account", accounts)
+firm = st.selectbox(
+    "Prop firm",
+    firms,
+    key="firm_sel",
+)
 
-    st.divider()
+df_firm = CFG[CFG["Firm"] == firm].copy()
+accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
+
+# If firm changed or current account is invalid, reset account to first valid
+if st.session_state.account_sel not in accounts:
+    st.session_state.account_sel = accounts[0] if accounts else None
+
+account = st.selectbox(
+    "Account",
+    accounts,
+    key="account_sel",
+)
+
 
     # --- Form controls (only apply when user clicks Update) ---
     with st.form("controls_form", border=False):
