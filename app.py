@@ -253,6 +253,18 @@ daily_max_loss = rule.get("DailyMaxLoss")  # can be None
 total_max_dd = float(rule.get("TotalMaxDD") or 0.0)
 profit_target = float(rule.get("ProfitTarget") or 0.0)
 firm_max_contracts = int(rule.get("FirmMaxContracts") or 0)
+# ------------------------------------------------------------
+# Normalize firm max contracts by instrument
+# Most prop firms define limits in MINI contracts (NQ)
+# 1 NQ = 10 MNQ
+# ------------------------------------------------------------
+CONTRACTS_PER_MINI = 10
+
+if instrument == "MNQ":
+    firm_max_contracts_adj = firm_max_contracts * CONTRACTS_PER_MINI
+else:
+    firm_max_contracts_adj = firm_max_contracts
+
 dd_type = (rule.get("DDType") or "").strip()
 
 # Instrument point value
@@ -281,7 +293,8 @@ risk_per_contract = stop_points * point_value
 
 # Contracts allowed by risk budget fraction
 contracts_by_risk = int(max(0, (risk_budget * risk_frac_effective) // max(risk_per_contract, 1e-9)))
-active_contracts = max(0, min(firm_max_contracts, contracts_by_risk))
+active_contracts = max(0, min(firm_max_contracts_adj, contracts_by_risk))
+
 
 # Expected edge per trade ($)
 expected_edge_dollars = ev_r * risk_per_contract * max(active_contracts, 1)
@@ -382,7 +395,7 @@ st.subheader("Sizing & Edge")
 s1, s2, s3, s4 = st.columns(4)
 s1.metric("Risk per contract", f"${risk_per_contract:,.2f}")
 s2.metric("Risk budget", f"${risk_budget:,.0f}" if risk_budget > 0 else "—")
-s3.metric("Max contracts (rule)", f"{firm_max_contracts}")
+s3.metric("Max contracts (rule)", f"{firm_max_contracts_adj}")
 s4.metric("Active contracts (by risk)", f"{active_contracts}")
 
 e1, e2, e3, e4 = st.columns(4)
