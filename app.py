@@ -208,33 +208,27 @@ with st.sidebar:
     st.title("Controls")
     st.caption("All inputs live here. Main page is outputs only.")
 
-  # --- Instant controls (NOT in the form) ---
-if "firm_sel" not in st.session_state:
-    st.session_state.firm_sel = default_firm
-if "account_sel" not in st.session_state:
-    st.session_state.account_sel = None
+    # --- Session state defaults ---
+    if "firm_sel" not in st.session_state:
+        st.session_state.firm_sel = default_firm
+    if "account_sel" not in st.session_state:
+        st.session_state.account_sel = None
 
-firm = st.selectbox(
-    "Prop firm",
-    firms,
-    key="firm_sel",
-)
+    # --- Instant controls (NOT in the form) ---
+    firm = st.selectbox("Prop firm", firms, key="firm_sel")
 
-df_firm = CFG[CFG["Firm"] == firm].copy()
-accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
+    df_firm = CFG[CFG["Firm"] == firm].copy()
+    accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
 
-# If firm changed or current account is invalid, reset account to first valid
-if st.session_state.account_sel not in accounts:
-    st.session_state.account_sel = accounts[0] if accounts else None
+    # Reset account if invalid for this firm
+    if st.session_state.account_sel not in accounts:
+        st.session_state.account_sel = accounts[0] if accounts else None
 
-account = st.selectbox(
-    "Account",
-    accounts,
-    key="account_sel",
-)
+    account = st.selectbox("Account", accounts, key="account_sel", disabled=(len(accounts) == 0))
 
+    st.divider()
 
-    # --- Form controls (only apply when user clicks Update) ---
+    # --- Form controls (apply when user clicks Update) ---
     with st.form("controls_form", border=False):
         instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
         risk_mode = st.radio("Risk mode", ["Safe", "Standard", "Aggressive"], horizontal=True, index=1)
@@ -267,6 +261,7 @@ account = st.selectbox(
         show_debug = st.checkbox("Show debug panel", value=False)
 
         submitted = st.form_submit_button("Update dashboard", use_container_width=True)
+
 # If the form hasn't been submitted yet, Streamlit still provides widget values,
 # so you don't need special fallback logic. (This is just a safety note.)
 
