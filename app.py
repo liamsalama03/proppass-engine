@@ -181,20 +181,99 @@ CFG = load_config()
 st.markdown(
     """
     <style>
-      .block-container { padding-top: 1.2rem; padding-bottom: 2.5rem; }
-      [data-testid="stMetricValue"] { font-size: 1.6rem; }
-      [data-testid="stMetricLabel"] { font-size: 0.95rem; opacity: 0.85; }
+      .block-container {
+        padding-top: 1.2rem;
+        padding-bottom: 2.5rem;
+        max-width: 1200px;
+      }
+
+      /* ---- Global text polish ---- */
+      h1, h2, h3 { letter-spacing: -0.02em; }
+      .muted { opacity: 0.72; }
+      .tiny { font-size: 0.85rem; opacity: 0.72; }
+      .hr {
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+        margin: 14px 0 22px 0;
+      }
+
+      /* ---- Page header ---- */
+      .pp-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-top: 8px;
+      }
+
+      .pp-title {
+        font-size: 2.35rem;
+        font-weight: 750;
+        line-height: 1.05;
+        margin: 0;
+      }
+
+      .pp-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.75;
+        margin-top: 6px;
+      }
+
+      /* ---- Header chips ---- */
+      .pp-chiprow {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .pp-chip {
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.03);
+        padding: 8px 10px;
+        border-radius: 999px;
+        font-size: 0.88rem;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .pp-chip b { font-weight: 650; }
+
+      /* ---- Section headers ---- */
+      .pp-section-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+      }
+
+      .pp-section-desc {
+        font-size: 0.92rem;
+        opacity: 0.72;
+        margin: 0 0 12px 0;
+      }
+
+      /* ---- Cards ---- */
       .soft-card {
         border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 16px;
-        padding: 18px 18px 8px 18px;
+        border-radius: 18px;
+        padding: 18px 18px 10px 18px;
         background: rgba(255,255,255,0.03);
       }
-      .muted { opacity: 0.75; }
+
+      /* ---- Metrics ---- */
+      [data-testid="stMetricValue"] {
+        font-size: 1.65rem;
+      }
+
+      [data-testid="stMetricLabel"] {
+        font-size: 0.92rem;
+        opacity: 0.78;
+      }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 # ============================================================
