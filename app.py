@@ -466,35 +466,31 @@ if state is not None:
 # 10) MAIN PAGE (outputs only)
 # ============================================================
 
-st.title("PropPass Engine 🚦")
-st.caption("Sidebar controls everything. This page is outputs only.")
+# ============================================================
+# MAIN PAGE HEADER (premium)
+# ============================================================
 
-# --- Top KPIs ---
-k1, k2, k3, k4 = st.columns(4)
-k1.metric("Firm / Account", f"{firm} — {account}")
-k2.metric("DD Type", dd_type or "—")
-k3.metric("Instrument", instrument)
-k4.metric("Risk mode", risk_mode)
+st.markdown(
+    f"""
+    <div class="pp-header">
+      <div>
+        <div class="pp-title">PropPass Engine</div>
+        <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
+      </div>
 
-st.write("")
+      <div class="pp-chiprow">
+        <div class="pp-chip"><span class="muted">Firm</span> <b>{firm}</b></div>
+        <div class="pp-chip"><span class="muted">Account</span> <b>{account}</b></div>
+        <div class="pp-chip"><span class="muted">DD</span> <b>{dd_type or "—"}</b></div>
+        <div class="pp-chip"><span class="muted">Instrument</span> <b>{instrument}</b></div>
+        <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
+      </div>
+    </div>
+    <div class="hr"></div>
+    """,
+    unsafe_allow_html=True,
+)
 
-# --- Performance / Target card ---
-st.markdown('<div class="soft-card">', unsafe_allow_html=True)
-st.subheader("Progress to Target")
-
-p1, p2, p3, p4 = st.columns(4)
-p1.metric("Profit target", f"${profit_target:,.0f}" if profit_target > 0 else "N/A")
-p2.metric("Realized PnL", f"${current_realized:,.0f}")
-p3.metric("Remaining", f"${remaining_profit:,.0f}" if profit_target > 0 else "—")
-p4.metric("Pass probability (est.)", f"{pass_label} ({pass_pct}%)")
-
-if profit_target > 0:
-    progress = min(1.0, max(0.0, current_realized / profit_target))
-    st.progress(progress, text=f"{progress*100:.1f}% of target reached")
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-st.write("")
 
 # --- Risk / Sizing card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
