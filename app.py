@@ -195,25 +195,24 @@ st.markdown(
       /* ---- Header ---- */
 st.markdown(
     f"""
-    <div class="pp-header">
-      <div class="pp-left">
-        <div class="pp-title">PropPass Engine</div>
-        <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
-      </div>
+<div class="pp-header">
+  <div class="pp-left">
+    <div class="pp-title">PropPass Engine</div>
+    <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
+  </div>
 
-      <div class="pp-chiprow">
-        <div class="pp-chip"><span class="muted">Firm</span> <b>{firm}</b></div>
-        <div class="pp-chip"><span class="muted">Account</span> <b>{account}</b></div>
-        <div class="pp-chip"><span class="muted">DD</span> <b>{dd_type or "—"}</b></div>
-        <div class="pp-chip"><span class="muted">Instrument</span> <b>{instrument}</b></div>
-        <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
-      </div>
-    </div>
-    <div class="hr"></div>
-    """,
+  <div class="pp-chiprow">
+    <div class="pp-chip"><span class="muted">Firm</span> <b>{firm}</b></div>
+    <div class="pp-chip"><span class="muted">Account</span> <b>{account}</b></div>
+    <div class="pp-chip"><span class="muted">DD</span> <b>{dd_type or "—"}</b></div>
+    <div class="pp-chip"><span class="muted">Instrument</span> <b>{instrument}</b></div>
+    <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
+  </div>
+</div>
+<div class="hr"></div>
+""",
     unsafe_allow_html=True,
 )
-
 
 
       /* ---- Section headers ---- */
