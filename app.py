@@ -193,47 +193,27 @@ st.markdown(
       .hr { height: 1px; background: rgba(255,255,255,0.08); margin: 14px 0 22px 0; }
 
       /* ---- Header ---- */
-      .pp-header {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 18px;
-        margin-top: 8px;
-        width: 100%;
-        overflow: visible;
-      }
+   st.markdown(
+    f"""
+    <div class="pp-header">
+      <div class="pp-left">
+        <div class="pp-title">PropPass Engine</div>
+        <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
+      </div>
 
-      .pp-left { min-width: 0; }  /* CRITICAL: prevents flex truncation */
+      <div class="pp-chiprow">
+        <div class="pp-chip"><span class="muted">Firm</span> <b>{firm}</b></div>
+        <div class="pp-chip"><span class="muted">Account</span> <b>{account}</b></div>
+        <div class="pp-chip"><span class="muted">DD</span> <b>{dd_type or "—"}</b></div>
+        <div class="pp-chip"><span class="muted">Instrument</span> <b>{instrument}</b></div>
+        <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
+      </div>
+    </div>
+    <div class="hr"></div>
+    """,
+    unsafe_allow_html=True,
+)
 
-      .pp-title {
-        font-size: 2.35rem;
-        font-weight: 750;
-        line-height: 1.05;
-        margin: 0;
-        white-space: normal;
-        overflow: visible;
-      }
-
-      .pp-subtitle { font-size: 0.95rem; opacity: 0.75; margin-top: 6px; }
-
-      .pp-chiprow {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        max-width: 55%;
-      }
-
-      .pp-chip {
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.03);
-        padding: 8px 10px;
-        border-radius: 999px;
-        font-size: 0.88rem;
-        line-height: 1;
-        white-space: nowrap;
-      }
-      .pp-chip b { font-weight: 650; }
 
       /* ---- Section headers ---- */
       .pp-section-title { font-size: 1.35rem; font-weight: 700; margin: 0 0 4px 0; }
