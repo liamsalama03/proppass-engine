@@ -193,7 +193,7 @@ st.markdown(
       .hr { height: 1px; background: rgba(255,255,255,0.08); margin: 14px 0 22px 0; }
 
       /* ---- Header ---- */
-   st.markdown(
+st.markdown(
     f"""
     <div class="pp-header">
       <div class="pp-left">
@@ -213,6 +213,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 
       /* ---- Section headers ---- */
