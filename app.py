@@ -273,6 +273,10 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+@media (max-width: 1100px) {
+  .pp-header { flex-direction: column; align-items: flex-start; }
+  .pp-chiprow { max-width: 100%; justify-content: flex-start; }
+}
 
 
 
