@@ -269,12 +269,23 @@ st.markdown(
       .pp-chip b { font-weight: 650; }
 
       /* ===== Cards ===== */
-      .soft-card {
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 18px;
-        padding: 18px 18px 12px 18px;
-        background: rgba(255,255,255,0.03);
-      }
+    .soft-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+  padding: 22px 18px 14px 18px;  /* more top padding */
+  background: rgba(255,255,255,0.03);
+}
+/* ===== Section headers ===== */
+.pp-section-title {
+  font-size: 1.45rem;
+  font-weight: 720;
+  margin: 0 0 12px 0;
+  padding-top: 2px;              /* prevents visual clipping */
+  line-height: 1.2;
+  display: inline-block;
+  transform: translate3d(0,0,0);
+}
+
 
       /* ===== Metrics ===== */
       [data-testid="stMetricValue"] { font-size: 1.65rem; }
