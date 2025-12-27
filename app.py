@@ -181,40 +181,58 @@ CFG = load_config()
 st.markdown(
     """
     <style>
+      /* ===== Page container ===== */
       .block-container {
-        padding-top: 1.2rem;
-        padding-bottom: 2.5rem;
         max-width: 1200px;
+        padding-top: 1.4rem;
+        padding-bottom: 2.6rem;
+        padding-left: 2.4rem !important;
+        padding-right: 2.4rem !important;
       }
 
       h1, h2, h3 { letter-spacing: -0.02em; }
+
       .muted { opacity: 0.72; }
       .tiny { font-size: 0.85rem; opacity: 0.72; }
-      .hr { height: 1px; background: rgba(255,255,255,0.08); margin: 14px 0 22px 0; }
 
-      /* Header */
+      .hr {
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+        margin: 16px 0 26px 0;
+      }
+
+      /* ===== Header ===== */
       .pp-header {
         display: flex;
-        align-items: flex-end;
         justify-content: space-between;
+        align-items: flex-end;
         gap: 18px;
-        margin-top: 8px;
         width: 100%;
         overflow: visible;
+        margin-top: 6px;
+        margin-bottom: 8px;
       }
-      .pp-left { min-width: 0; } /* critical for flex truncation */
+
+      .pp-left {
+        min-width: 0;
+        padding-left: 2px; /* prevents left glyph clipping */
+      }
 
       .pp-title {
-        font-size: 2.35rem;
-        font-weight: 750;
-        line-height: 1.05;
+        font-size: 2.4rem;
+        font-weight: 760;
+        line-height: 1.06;
         margin: 0;
         white-space: normal;
-        overflow: visible;
       }
 
-      .pp-subtitle { font-size: 0.95rem; opacity: 0.75; margin-top: 6px; }
+      .pp-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.75;
+        margin-top: 6px;
+      }
 
+      /* ===== Chips ===== */
       .pp-chiprow {
         display: flex;
         gap: 10px;
@@ -226,34 +244,57 @@ st.markdown(
       .pp-chip {
         border: 1px solid rgba(255,255,255,0.10);
         background: rgba(255,255,255,0.03);
-        padding: 8px 10px;
+        padding: 8px 11px;
         border-radius: 999px;
         font-size: 0.88rem;
         line-height: 1;
         white-space: nowrap;
       }
+
       .pp-chip b { font-weight: 650; }
 
-      /* Section headers */
-      .pp-section-title { font-size: 1.35rem; font-weight: 700; margin: 0 0 4px 0; }
-      .pp-section-desc { font-size: 0.92rem; opacity: 0.72; margin: 0 0 12px 0; }
+      /* ===== Section headers ===== */
+      .pp-section-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+      }
 
-      /* Cards */
+      .pp-section-desc {
+        font-size: 0.92rem;
+        opacity: 0.72;
+        margin: 0 0 14px 0;
+      }
+
+      /* ===== Cards ===== */
       .soft-card {
         border: 1px solid rgba(255,255,255,0.08);
         border-radius: 18px;
-        padding: 18px 18px 10px 18px;
+        padding: 18px 18px 12px 18px;
         background: rgba(255,255,255,0.03);
       }
 
-      /* Metrics */
-      [data-testid="stMetricValue"] { font-size: 1.65rem; }
-      [data-testid="stMetricLabel"] { font-size: 0.92rem; opacity: 0.78; }
+      /* ===== Metrics ===== */
+      [data-testid="stMetricValue"] {
+        font-size: 1.65rem;
+      }
 
-      /* Responsive: stack chips below title */
+      [data-testid="stMetricLabel"] {
+        font-size: 0.92rem;
+        opacity: 0.78;
+      }
+
+      /* ===== Responsive ===== */
       @media (max-width: 1100px) {
-        .pp-header { flex-direction: column; align-items: flex-start; }
-        .pp-chiprow { max-width: 100%; justify-content: flex-start; }
+        .pp-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .pp-chiprow {
+          max-width: 100%;
+          justify-content: flex-start;
+        }
       }
     </style>
     """,
