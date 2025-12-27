@@ -215,7 +215,7 @@ st.markdown(
 
       .pp-left {
         min-width: 0;
-        padding-left: 2px; /* prevents left glyph clipping */
+        padding-left: 8px; /* prevents left edge clipping */
       }
 
       .pp-title {
@@ -224,6 +224,11 @@ st.markdown(
         line-height: 1.06;
         margin: 0;
         white-space: normal;
+
+        /* repaint + anti-clip (fixes “only visible after scroll”) */
+        transform: translateX(0);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
       }
 
       .pp-subtitle {
@@ -275,26 +280,13 @@ st.markdown(
       }
 
       /* ===== Metrics ===== */
-      [data-testid="stMetricValue"] {
-        font-size: 1.65rem;
-      }
-
-      [data-testid="stMetricLabel"] {
-        font-size: 0.92rem;
-        opacity: 0.78;
-      }
+      [data-testid="stMetricValue"] { font-size: 1.65rem; }
+      [data-testid="stMetricLabel"] { font-size: 0.92rem; opacity: 0.78; }
 
       /* ===== Responsive ===== */
       @media (max-width: 1100px) {
-        .pp-header {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .pp-chiprow {
-          max-width: 100%;
-          justify-content: flex-start;
-        }
+        .pp-header { flex-direction: column; align-items: flex-start; }
+        .pp-chiprow { max-width: 100%; justify-content: flex-start; }
       }
     </style>
     """,
@@ -491,6 +483,29 @@ if state is not None:
 # ============================================================
 # 10) MAIN PAGE (outputs only)
 # ============================================================
+st.markdown(
+    f"""
+<div class="pp-header">
+  <div class="pp-left">
+    <div class="pp-title">PropPass Engine</div>
+    <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
+  </div>
+
+  <div class="pp-chiprow">
+    <div class="pp-chip"><span class="muted">Firm</span> <b>{firm}</b></div>
+    <div class="pp-chip"><span class="muted">Account</span> <b>{account}</b></div>
+    <div class="pp-chip"><span class="muted">DD</span> <b>{dd_type or "—"}</b></div>
+    <div class="pp-chip"><span class="muted">Instrument</span> <b>{instrument}</b></div>
+    <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
+  </div>
+</div>
+<div class="hr"></div>
+""",
+    unsafe_allow_html=True,
+)
+
+# repaint nudge (fixes “it appears after scroll” on some browsers)
+st.markdown("<span style='display:block;height:1px;'></span>", unsafe_allow_html=True)
 
 # ============================================================
 # MAIN PAGE HEADER (premium)
