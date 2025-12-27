@@ -291,15 +291,21 @@ st.markdown(
   [data-testid="stMetricLabel"]{ font-size: 0.92rem; opacity: 0.78; }
 
   /* ===== Responsive ===== */
-  @media (max-width: 1100px){
-    .pp-header{ flex-direction: column; align-items: flex-start; }
-    .pp-chiprow{ justify-content:flex-start; }
-    .stApp .pp-title{ font-size: 2.4rem !important; }
-  }
+@media (max-width: 1100px) {
+  .pp-header { flex-direction: column; align-items: flex-start; }
+  .pp-chiprow { max-width: 100%; justify-content: flex-start; }
+}
+
+/* ===== NUCLEAR OVERRIDE (final authority) ===== */
+div.pp-title {
+  font-size: clamp(3.0rem, 4.2vw, 4.0rem) !important;
+  font-weight: 820 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.035em !important;
+}
+
 </style>
-""",
-    unsafe_allow_html=True,
-)
+
 
 
 
