@@ -574,11 +574,32 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
+# ---- Confidence color class ----
+if pass_pct >= 85:
+    pass_class = "pass-high"
+elif pass_pct >= 70:
+    pass_class = "pass-moderate"
+else:
+    pass_class = "pass-low"
 p1, p2, p3 = st.columns(3)
-p1.metric("Pass confidence", f"{pass_pct}%")
-p2.metric("Bucket", pass_label.replace(" (negative edge)", ""))
-p3.metric("Trades needed (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
+
+with p1:
+    st.markdown(
+        f"""
+        <div class="pp-metric">
+            <div class="pp-metric-label">Pass confidence</div>
+            <div class="pp-metric-value {pass_class}">{pass_pct}%</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with p2:
+    st.metric("Bucket", pass_label)
+
+with p3:
+    st.metric("Trades needed (est.)", f"{estimated_trades:.1f}")
+
 
 # Full-width progress bar across the card
 st.progress(max(0, min(100, int(pass_pct))) / 100.0)
