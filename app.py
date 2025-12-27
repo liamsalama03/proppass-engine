@@ -184,10 +184,15 @@ st.markdown(
       /* ===== Page container ===== */
       .block-container {
         max-width: 1200px;
-        padding-top: 1.4rem;
+        padding-top: 1.6rem;              /* slightly more top room */
         padding-bottom: 2.6rem;
         padding-left: 2.4rem !important;
         padding-right: 2.4rem !important;
+      }
+
+      /* Prevent accidental duplicate Streamlit page title on MAIN page */
+      section.main div[data-testid="stMarkdownContainer"] h1 {
+        display: none !important;
       }
 
       h1, h2, h3 { letter-spacing: -0.02em; }
@@ -209,24 +214,29 @@ st.markdown(
         gap: 18px;
         width: 100%;
         overflow: visible;
-        margin-top: 6px;
+        margin-top: 8px;
         margin-bottom: 8px;
       }
 
       .pp-left {
         min-width: 0;
-        padding-left: 8px; /* prevents left edge clipping */
+        padding-left: 12px;               /* more left room to avoid edge clipping */
       }
 
       .pp-title {
         font-size: 2.4rem;
         font-weight: 760;
-        line-height: 1.06;
+        line-height: 1.12;                /* slightly taller to avoid top glyph clipping */
         margin: 0;
-        white-space: normal;
 
-        /* repaint + anti-clip (fixes “only visible after scroll”) */
-        transform: translateX(0);
+        display: inline-block;            /* key: prevents weird clipping */
+        padding-top: 6px;                 /* key: avoids top cut */
+        padding-bottom: 2px;
+
+        /* key: forces a clean first paint (fixes “appears after scroll”) */
+        transform: translate3d(0,0,0);
+        will-change: transform;
+
         -webkit-font-smoothing: antialiased;
         text-rendering: geometricPrecision;
       }
@@ -258,19 +268,6 @@ st.markdown(
 
       .pp-chip b { font-weight: 650; }
 
-      /* ===== Section headers ===== */
-      .pp-section-title {
-        font-size: 1.35rem;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-      }
-
-      .pp-section-desc {
-        font-size: 0.92rem;
-        opacity: 0.72;
-        margin: 0 0 14px 0;
-      }
-
       /* ===== Cards ===== */
       .soft-card {
         border: 1px solid rgba(255,255,255,0.08);
@@ -292,6 +289,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 
 # ============================================================
