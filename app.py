@@ -511,27 +511,6 @@ st.markdown("<span style='display:block;height:1px;'></span>", unsafe_allow_html
 # MAIN PAGE HEADER (premium)
 # ============================================================
 
-st.markdown(
-    f"""
-    <div class="pp-header">
-      <div>
-        <div class="pp-title">PropPass Engine</div>
-        <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
-      </div>
-
-      <div class="pp-chiprow">
-        <div class="pp-chip"><span class="muted">Firm</span> <b>{firm}</b></div>
-        <div class="pp-chip"><span class="muted">Account</span> <b>{account}</b></div>
-        <div class="pp-chip"><span class="muted">DD</span> <b>{dd_type or "—"}</b></div>
-        <div class="pp-chip"><span class="muted">Instrument</span> <b>{instrument}</b></div>
-        <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
-      </div>
-    </div>
-    <div class="hr"></div>
-    """,
-    unsafe_allow_html=True,
-)
-
 
 # --- Risk / Sizing card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
