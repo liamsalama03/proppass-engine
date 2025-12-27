@@ -180,186 +180,126 @@ CFG = load_config()
 
 st.markdown(
     """
-    <style>
-    ...
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+<style>
+  /* ===== Page container ===== */
+  .block-container{
+    max-width: 1200px;
+    padding-top: 1.6rem;
+    padding-bottom: 2.6rem;
+    padding-left: 2.4rem !important;
+    padding-right: 2.4rem !important;
+  }
 
-      /* ===== Page container ===== */
-      .block-container {
-        max-width: 1200px;
-        padding-top: 1.6rem;              /* slightly more top room */
-        padding-bottom: 2.6rem;
-        padding-left: 2.4rem !important;
-        padding-right: 2.4rem !important;
-      }
+  /* Clean text rendering */
+  h1, h2, h3{ letter-spacing: -0.02em; }
+  .muted{ opacity: 0.72; }
+  .tiny{ font-size: 0.85rem; opacity: 0.72; }
 
-      /* Prevent accidental duplicate Streamlit page title on MAIN page */
-      section.main div[data-testid="stMarkdownContainer"] h1 {
-        display: none !important;
-      }
+  /* Divider line */
+  .hr{
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 16px 0 26px 0;
+  }
 
-      h1, h2, h3 { letter-spacing: -0.02em; }
-
-      .muted { opacity: 0.72; }
-      .tiny { font-size: 0.85rem; opacity: 0.72; }
-
-      .hr {
-        height: 1px;
-        background: rgba(255,255,255,0.08);
-        margin: 16px 0 26px 0;
-      }
-
-/* ===== Header ===== */
-.pp-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  width: 100%;
-  margin-top: 18px;
-  margin-bottom: 18px;
-}
-
-.pp-left {
-  max-width: 720px;
-}
-
-.pp-title {
-  font-size: 3.1rem;          /* BIGGER, premium */
-  font-weight: 780;
-  line-height: 1.05;
-  margin: 0;
-  letter-spacing: -0.03em;
-}
-
-.pp-subtitle {
-  font-size: 1.05rem;
-  opacity: 0.78;
-  margin-top: 10px;
-  line-height: 1.45;
-}
-
-.pp-chiprow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.pp-chip {
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.04);
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 0.88rem;
-  white-space: nowrap;
-}
-
-.pp-chip b {
-  font-weight: 650;
-}
-
-/* Responsive */
-@media (max-width: 1100px) {
-  .pp-header {
-    flex-direction: column;
+  /* ===== Header ===== */
+  .pp-header{
+    display:flex;
+    justify-content: space-between;
     align-items: flex-start;
+    gap: 22px;
+    width: 100%;
+    margin-top: 18px;
+    margin-bottom: 12px;
   }
 
-  .pp-chiprow {
-    justify-content: flex-start;
+  .pp-left{
+    max-width: 720px;
+    min-width: 0;
   }
 
-  .pp-title {
-    font-size: 2.4rem;
+  /* Force typography (Streamlit sometimes overrides) */
+  .stApp .pp-title{
+    font-size: 3.1rem !important;
+    font-weight: 780 !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.03em !important;
+    margin: 0 !important;
   }
-}
 
+  .stApp .pp-subtitle{
+    font-size: 1.05rem !important;
+    opacity: 0.78 !important;
+    margin-top: 10px !important;
+    line-height: 1.45 !important;
+  }
 
-/* ===== Chips ===== */
-.pp-chiprow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  max-width: 55%;
+  /* ===== Chips ===== */
+  .pp-chiprow{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+    align-items:center;
+    padding-top: 6px;            /* prevents “top clip” */
+  }
 
-  /* this is the main fix */
-  padding-top: 6px;
-}
+  .pp-chip{
+    display:inline-flex;          /* prevents border clipping */
+    align-items:center;
+    gap:8px;
 
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
+    padding: 9px 12px;
+    border-radius: 999px;
 
-.pp-chip {
-  display: inline-flex;          /* prevents border clipping */
-  align-items: center;
-  gap: 8px;
+    font-size: 0.88rem;
+    line-height: 1.15;           /* taller line box = no clip */
+    white-space: nowrap;
 
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.03);
+    transform: translate3d(0,0,0); /* clean repaint */
+  }
 
-  padding: 9px 12px;             /* slightly taller */
-  border-radius: 999px;
+  .pp-chip b{ font-weight: 650; }
 
-  font-size: 0.88rem;
-  line-height: 1.15;             /* taller line box = no clip */
-  white-space: nowrap;
+  /* ===== Cards ===== */
+  .soft-card{
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 22px 18px 14px 18px;   /* more top padding */
+    background: rgba(255,255,255,0.03);
+  }
 
-  transform: translate3d(0,0,0); /* forces clean repaint */
-}
+  /* ===== Fix Streamlit subheaders “cropping” =====
+     Streamlit subheader markup can clip on some themes.
+  */
+  [data-testid="stSubheader"]{
+    padding-top: 4px;
+  }
+  [data-testid="stSubheader"] h3{
+    margin-top: 0 !important;
+    line-height: 1.2 !important;
+    padding-top: 2px !important;
+    display: inline-block;
+    transform: translate3d(0,0,0);
+  }
 
+  /* ===== Metrics ===== */
+  [data-testid="stMetricValue"]{ font-size: 1.65rem; }
+  [data-testid="stMetricLabel"]{ font-size: 0.92rem; opacity: 0.78; }
 
-      /* ===== Cards ===== */
-    .soft-card {
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 18px;
-  padding: 22px 18px 14px 18px;  /* more top padding */
-  background: rgba(255,255,255,0.03);
-}
-/* ===== Section headers ===== */
-.pp-section-title {
-  font-size: 1.45rem;
-  font-weight: 720;
-  margin: 0 0 12px 0;
-  padding-top: 2px;              /* prevents visual clipping */
-  line-height: 1.2;
-  display: inline-block;
-  transform: translate3d(0,0,0);
-}
-
-
-      /* ===== Metrics ===== */
-      [data-testid="stMetricValue"] { font-size: 1.65rem; }
-      [data-testid="stMetricLabel"] { font-size: 0.92rem; opacity: 0.78; }
-
-      /* ===== Responsive ===== */
-      @media (max-width: 1100px) {
-        .pp-header { flex-direction: column; align-items: flex-start; }
-        .pp-chiprow { max-width: 100%; justify-content: flex-start; }
-      }
-/* ===== FORCE header typography (Streamlit sometimes overrides) ===== */
-.stApp .pp-title{
-  font-size: 3.1rem !important;
-  font-weight: 780 !important;
-  line-height: 1.05 !important;
-  letter-spacing: -0.03em !important;
-  margin: 0 !important;
-}
-
-.stApp .pp-subtitle{
-  font-size: 1.05rem !important;
-  opacity: 0.78 !important;
-  margin-top: 10px !important;
-  line-height: 1.45 !important;
-}
-
-    </style>
-    """,
+  /* ===== Responsive ===== */
+  @media (max-width: 1100px){
+    .pp-header{ flex-direction: column; align-items: flex-start; }
+    .pp-chiprow{ justify-content:flex-start; }
+    .stApp .pp-title{ font-size: 2.4rem !important; }
+  }
+</style>
+""",
     unsafe_allow_html=True,
 )
+
 
 
 
@@ -557,9 +497,7 @@ st.markdown(
 <div class="pp-header">
   <div class="pp-left">
     <div class="pp-title">PropPass Engine</div>
-    <div class="pp-subtitle">
-      Real-time risk, sizing, and pass confidence for prop firm evaluations.
-    </div>
+    <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
   </div>
 
   <div class="pp-chiprow">
