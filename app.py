@@ -301,6 +301,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 # ============================================================
 # 6) Sidebar — firm/account update instantly, rest uses a form
 # ============================================================
