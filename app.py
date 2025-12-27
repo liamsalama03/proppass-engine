@@ -515,11 +515,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-p1, p2, p3 = st.columns([1, 1, 1])
-
+p1, p2 = st.columns([1, 1])
 p1.metric("Pass confidence", f"{pass_pct}%")
-p2.metric("Bucket", pass_label.split(" (")[0])  # "High" / "Moderate" / "Low"
-p3.metric("Trades needed (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
+p2.metric("Trades needed (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
+st.caption(f"{pass_label} • EV(R): {ev_r:.3f}")
+
 
 # small helper line
 if ev_r <= 0:
