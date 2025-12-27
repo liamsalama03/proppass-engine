@@ -263,47 +263,56 @@ st.markdown(
         background: rgba(255,255,255,0.03);
       }
 
-      /* ===== Pass Probability text metric (custom HTML) ===== */
-      .pp-metric-label {
-        font-size: 0.92rem;
-        opacity: 0.78;
-      }
+     /* ===== Pass Probability (clean grid) ===== */
+.pp-kpi-grid{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+  margin-top: 12px;
+  align-items: start;
+}
 
-      .pp-metric-value {
-        font-size: 2.1rem;
-        font-weight: 750;
-        line-height: 1.1;
-        margin-top: 4px;
-      }
+.pp-kpi{ min-width: 0; }
+.pp-kpi.center{ text-align: center; }
+.pp-kpi.right{ text-align: right; }
 
-      .pass-high { color: #22c55e; }      /* green */
-      .pass-moderate { color: #f59e0b; }  /* amber */
-      .pass-low { color: #ef4444; }       /* red */
+.pp-kpi-label{
+  font-size: 0.92rem;
+  opacity: 0.78;
+}
 
-      /* ===== Streamlit metric tweaks ===== */
-      [data-testid="stMetricValue"] { font-size: 1.65rem; }
-      [data-testid="stMetricLabel"] { font-size: 0.92rem; opacity: 0.78; }
-      div[data-testid="stMetric"] { padding-top: 6px; padding-bottom: 6px; }
+.pp-kpi-value{
+  font-size: 2.15rem;
+  font-weight: 760;
+  line-height: 1.1;
+  margin-top: 6px;
+}
 
-      /* ===== Hide Streamlit header link icon (the little chain) ===== */
-      div[data-testid="stHeaderActionElements"] {
-        display: none !important;
-      }
+.pp-kpi-value.mid{
+  font-size: 1.9rem;
+}
 
-      /* ===== Responsive ===== */
-      @media (max-width: 1100px) {
-        .pp-header { flex-direction: column; align-items: flex-start; }
-        .pp-chiprow { justify-content: flex-start; }
-        .pp-title { font-size: 2.4rem; }
-      }
+.pp-progress{
+  margin-top: 16px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
 
-      /* ===== NUCLEAR OVERRIDE (final authority) ===== */
-      div.pp-title {
-        font-size: clamp(3.0rem, 4.2vw, 4.0rem) !important;
-        font-weight: 820 !important;
-        line-height: 1.02 !important;
-        letter-spacing: -0.035em !important;
-      }
+.pp-progress > div{
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: rgba(59,130,246,0.95); /* clean blue */
+}
+
+/* Mobile: stack KPIs */
+@media (max-width: 900px){
+  .pp-kpi-grid{ grid-template-columns: 1fr; }
+  .pp-kpi.center, .pp-kpi.right{ text-align: left; }
+}
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -538,7 +547,7 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
-# --- Pass Probability card ---
+# --- Pass Probability card (CLEAN HTML GRID) ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
 st.markdown(
@@ -548,71 +557,51 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 # ---- Confidence color class ----
-if pass_pct >= 85:
+pass_pct_i = int(round(pass_pct))
+if pass_pct_i >= 85:
     pass_class = "pass-high"
-elif pass_pct >= 70:
+elif pass_pct_i >= 70:
     pass_class = "pass-moderate"
 else:
     pass_class = "pass-low"
-p1, p2, p3 = st.columns(3)
 
-with p1:
-    st.markdown(
-        f"""
-        <div class="pp-metric">
-            <div class="pp-metric-label">Pass confidence</div>
-            <div class="pp-metric-value {pass_class}">{pass_pct}%</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+bucket_clean = pass_label.replace("Low (negative edge)", "Low")
 
-with p2:
-    st.metric("Bucket", pass_label)
-
-with p3:
-    st.metric("Trades needed (est.)", f"{estimated_trades:.1f}")
-
-
-# Full-width progress bar across the card
-st.progress(max(0, min(100, int(pass_pct))) / 100.0)
-
-st.caption(
-    f"EV(R): {ev_r:.3f} • Expected edge/trade: ${expected_edge_dollars:,.2f}"
-    if expected_edge_dollars is not None
-    else f"EV(R): {ev_r:.3f}"
-)
-
-st.markdown("</div>", unsafe_allow_html=True)
-st.write("")
 st.markdown(
     f"""
-    <div class="pp-pass-row">
-      <div class="pp-pass-metric">
-        <div class="pp-pass-label">Pass confidence</div>
-        <div class="pp-pass-value {pass_class}">
-          {pass_pct}%
-        </div>
+    <div class="pp-kpi-grid">
+      <div class="pp-kpi">
+        <div class="pp-kpi-label">Pass confidence</div>
+        <div class="pp-kpi-value {pass_class}">{pass_pct_i}%</div>
       </div>
 
-      <div class="pp-pass-metric">
-        <div class="pp-pass-label">Bucket</div>
-        <div class="pp-pass-bucket {pass_class}">
-          {pass_label}
-        </div>
+      <div class="pp-kpi center">
+        <div class="pp-kpi-label">Bucket</div>
+        <div class="pp-kpi-value mid">{bucket_clean}</div>
       </div>
 
-      <div class="pp-pass-metric">
-        <div class="pp-pass-label">Trades needed (est.)</div>
-        <div class="pp-pass-value">
-          {estimated_trades:.1f}
-        </div>
+      <div class="pp-kpi right">
+        <div class="pp-kpi-label">Trades needed (est.)</div>
+        <div class="pp-kpi-value mid">{(f"{estimated_trades:.1f}" if estimated_trades is not None else "—")}</div>
       </div>
+    </div>
+
+    <div class="pp-progress" aria-label="pass probability bar">
+      <div style="width:{max(0, min(pass_pct_i, 100))}%;"></div>
+    </div>
+
+    <div class="tiny" style="margin-top:10px;">
+      EV(R): {ev_r:.3f} • Expected edge/trade: ${(expected_edge_dollars if expected_edge_dollars is not None else 0):,.2f}
     </div>
     """,
     unsafe_allow_html=True,
 )
+
+st.markdown("</div>", unsafe_allow_html=True)
+st.write("")
+
 
 
 
