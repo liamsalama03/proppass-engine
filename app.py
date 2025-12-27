@@ -504,6 +504,32 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+# ============================================================
+# PASS PROBABILITY (clean card)
+# ============================================================
+st.markdown('<div class="soft-card">', unsafe_allow_html=True)
+
+st.markdown(
+    '<div class="pp-section-title">Pass Probability</div>'
+    '<div class="pp-section-desc">A quick read on how likely this plan reaches target before hitting drawdown.</div>',
+    unsafe_allow_html=True,
+)
+
+p1, p2, p3 = st.columns([1, 1, 1])
+
+p1.metric("Pass confidence", f"{pass_pct}%")
+p2.metric("Bucket", pass_label.split(" (")[0])  # "High" / "Moderate" / "Low"
+p3.metric("Trades needed (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
+
+# small helper line
+if ev_r <= 0:
+    st.caption("⚠️ EV is negative — pass probability will stay low unless win rate / R multiple improves.")
+else:
+    st.caption(f"EV(R): {ev_r:.3f} • Expected edge/trade: ${expected_edge_dollars:,.2f}")
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+st.write("")
 
 
 
