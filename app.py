@@ -206,67 +206,57 @@ st.markdown(
         margin: 16px 0 26px 0;
       }
 
-      /* ===== Header ===== */
-      .pp-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        gap: 18px;
-        width: 100%;
-        overflow: visible;
-        margin-top: 8px;
-        margin-bottom: 8px;
-      }
+    /* ===== Header ===== */
+.pp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  width: 100%;
+  overflow: visible;
 
-      .pp-left {
-        min-width: 0;
-        padding-left: 12px;               /* more left room to avoid edge clipping */
-      }
+  /* add a tiny safe area so nothing clips */
+  padding-top: 6px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
 
-      .pp-title {
-        font-size: 2.4rem;
-        font-weight: 760;
-        line-height: 1.12;                /* slightly taller to avoid top glyph clipping */
-        margin: 0;
+.pp-left {
+  min-width: 0;
+  padding-left: 8px;
+}
 
-        display: inline-block;            /* key: prevents weird clipping */
-        padding-top: 6px;                 /* key: avoids top cut */
-        padding-bottom: 2px;
+/* ===== Chips ===== */
+.pp-chiprow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 55%;
 
-        /* key: forces a clean first paint (fixes “appears after scroll”) */
-        transform: translate3d(0,0,0);
-        will-change: transform;
+  /* this is the main fix */
+  padding-top: 6px;
+}
 
-        -webkit-font-smoothing: antialiased;
-        text-rendering: geometricPrecision;
-      }
 
-      .pp-subtitle {
-        font-size: 0.95rem;
-        opacity: 0.75;
-        margin-top: 6px;
-      }
+.pp-chip {
+  display: inline-flex;          /* prevents border clipping */
+  align-items: center;
+  gap: 8px;
 
-      /* ===== Chips ===== */
-      .pp-chiprow {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        max-width: 55%;
-      }
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
 
-      .pp-chip {
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.03);
-        padding: 8px 11px;
-        border-radius: 999px;
-        font-size: 0.88rem;
-        line-height: 1;
-        white-space: nowrap;
-      }
+  padding: 9px 12px;             /* slightly taller */
+  border-radius: 999px;
 
-      .pp-chip b { font-weight: 650; }
+  font-size: 0.88rem;
+  line-height: 1.15;             /* taller line box = no clip */
+  white-space: nowrap;
+
+  transform: translate3d(0,0,0); /* forces clean repaint */
+}
+
 
       /* ===== Cards ===== */
     .soft-card {
