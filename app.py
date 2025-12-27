@@ -281,6 +281,31 @@ st.markdown(
         line-height: 1.02 !important;
         letter-spacing: -0.035em !important;
       }
+      /* =========================================================
+   HEADER + METRIC ALIGNMENT FIXES (ADD HERE)
+   ========================================================= */
+
+/* Hide Streamlit header anchor / link icon */
+a[data-testid="stHeaderActionElements"] {
+  display: none !important;
+}
+
+/* Some Streamlit versions use SVG icons instead */
+div[data-testid="stHeader"] svg {
+  display: none !important;
+}
+
+/* Tighten spacing above headers so they don't feel clipped */
+div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stHeader"]) {
+  margin-top: 0.25rem;
+}
+
+/* Make metric blocks align vertically and feel centered */
+div[data-testid="stMetric"] {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -504,39 +529,34 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
-# ============================================================
-# PASS PROBABILITY (card + full-width progress bar)
-# ============================================================
+# --- Pass Probability card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
 st.markdown(
-    '<div class="pp-section-title">Pass Probability</div>'
-    '<div class="pp-section-desc">A quick read on how likely this plan reaches target before hitting drawdown.</div>',
+    """
+    <div class="pp-section-title">Pass Probability</div>
+    <div class="pp-section-desc">A quick read on how likely this plan reaches target before hitting drawdown.</div>
+    """,
     unsafe_allow_html=True,
 )
 
-# --- Top metrics row ---
-p1, p2, p3 = st.columns([1, 1, 1])
+p1, p2, p3 = st.columns(3)
 p1.metric("Pass confidence", f"{pass_pct}%")
-p2.metric("Bucket", pass_label.split(" (")[0])  # High / Moderate / Low
+p2.metric("Bucket", pass_label.replace(" (negative edge)", ""))
 p3.metric("Trades needed (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
 
-st.write("")
+# Full-width progress bar across the card
+st.progress(max(0, min(100, int(pass_pct))) / 100.0)
 
-# --- Full-width progress bar across the card ---
-# Streamlit expects 0.0–1.0
-bar_val = max(0, min(100, int(pass_pct))) / 100.0
-st.progress(bar_val)
-
-# --- Helper line under the bar ---
-if ev_r <= 0:
-    st.caption("⚠️ EV is negative — pass probability will stay low unless win rate / R multiple improves.")
-else:
-    st.caption(f"EV(R): {ev_r:.3f} • Expected edge/trade: ${expected_edge_dollars:,.2f}")
+st.caption(
+    f"EV(R): {ev_r:.3f} • Expected edge/trade: ${expected_edge_dollars:,.2f}"
+    if expected_edge_dollars is not None
+    else f"EV(R): {ev_r:.3f}"
+)
 
 st.markdown("</div>", unsafe_allow_html=True)
-
 st.write("")
+
 
 
 
@@ -548,7 +568,8 @@ st.write("")
 
 # --- Risk / Sizing card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
-st.subheader("Sizing & Edge")
+
+st.markdown('<div class="pp-section-title">Sizing & Edge</div>', unsafe_allow_html=True)
 
 s1, s2, s3, s4 = st.columns(4)
 s1.metric("Risk per contract", f"${risk_per_contract:,.2f}")
@@ -562,18 +583,20 @@ e2.metric("R multiple", f"{r_multiple:.2f}R")
 e3.metric("EV (R)", f"{ev_r:.3f}")
 e4.metric("Expected edge / trade", f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—")
 
-t1, t2, t3 = st.columns(3)
+t1, t2, t3, t4 = st.columns(4)  # <-- force 4 columns for alignment
 t1.metric("Trades to target (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
 t2.metric("Stop (points)", f"{stop_points:g}")
 t3.metric("Point value", f"${point_value:,.0f}/pt")
+t4.metric("", "")  # blank spacer keeps the row visually centered/consistent
 
 st.markdown("</div>", unsafe_allow_html=True)
-
 st.write("")
+
 
 # --- Drawdown engine card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
-st.subheader("Drawdown Engine")
+
+st.markdown('<div class="pp-section-title">Drawdown Engine</div>', unsafe_allow_html=True)
 
 d1, d2, d3, d4 = st.columns(4)
 d1.metric("Start balance", f"${float(start_balance):,.0f}")
@@ -581,18 +604,19 @@ d2.metric("Equity", f"${float(equity):,.0f}")
 d3.metric("Closed balance", f"${closed_balance:,.0f}")
 d4.metric("Max DD", f"${total_max_dd:,.0f}")
 
-dd1, dd2, dd3 = st.columns(3)
+dd1, dd2, dd3, dd4 = st.columns(4)  # <-- force 4 columns for alignment
 dd1.metric("High Water Mark (HWM)", f"${hwm:,.2f}")
 dd2.metric("Trailing line", f"${trailing_line:,.2f}" if trailing_line is not None else "—")
 dd3.metric("Engine call used", used_call or "—")
+dd4.metric("", "")  # blank spacer
 
 if trailing_line is not None:
     buffer_amt = float(equity) - float(trailing_line)
     st.caption(f"Buffer to trailing line: ${buffer_amt:,.2f} (equity − trailing line)")
 
 st.markdown("</div>", unsafe_allow_html=True)
-
 st.write("")
+
 
 # --- Rule details (outputs only) ---
 with st.expander("Rule details (what this account is using)", expanded=False):
