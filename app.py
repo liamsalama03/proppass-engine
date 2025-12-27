@@ -181,6 +181,12 @@ CFG = load_config()
 st.markdown(
     """
     <style>
+    ...
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
       /* ===== Page container ===== */
       .block-container {
         max-width: 1200px;
@@ -206,25 +212,73 @@ st.markdown(
         margin: 16px 0 26px 0;
       }
 
-    /* ===== Header ===== */
+/* ===== Header ===== */
 .pp-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: 18px;
+  align-items: flex-start;
+  gap: 24px;
   width: 100%;
-  overflow: visible;
-
-  /* add a tiny safe area so nothing clips */
-  padding-top: 6px;
-  margin-top: 6px;
-  margin-bottom: 8px;
+  margin-top: 18px;
+  margin-bottom: 18px;
 }
 
 .pp-left {
-  min-width: 0;
-  padding-left: 8px;
+  max-width: 720px;
 }
+
+.pp-title {
+  font-size: 3.1rem;          /* BIGGER, premium */
+  font-weight: 780;
+  line-height: 1.05;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.pp-subtitle {
+  font-size: 1.05rem;
+  opacity: 0.78;
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+.pp-chiprow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.pp-chip {
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.pp-chip b {
+  font-weight: 650;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .pp-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pp-chiprow {
+    justify-content: flex-start;
+  }
+
+  .pp-title {
+    font-size: 2.4rem;
+  }
+}
+
 
 /* ===== Chips ===== */
 .pp-chiprow {
@@ -487,7 +541,9 @@ st.markdown(
 <div class="pp-header">
   <div class="pp-left">
     <div class="pp-title">PropPass Engine</div>
-    <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
+    <div class="pp-subtitle">
+      Real-time risk, sizing, and pass confidence for prop firm evaluations.
+    </div>
   </div>
 
   <div class="pp-chiprow">
@@ -498,10 +554,12 @@ st.markdown(
     <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
   </div>
 </div>
+
 <div class="hr"></div>
 """,
     unsafe_allow_html=True,
 )
+
 
 # repaint nudge (fixes “it appears after scroll” on some browsers)
 st.markdown("<span style='display:block;height:1px;'></span>", unsafe_allow_html=True)
