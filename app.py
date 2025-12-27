@@ -263,9 +263,32 @@ st.markdown(
         background: rgba(255,255,255,0.03);
       }
 
-      /* ===== Metrics ===== */
+      /* ===== Pass Probability text metric (custom HTML) ===== */
+      .pp-metric-label {
+        font-size: 0.92rem;
+        opacity: 0.78;
+      }
+
+      .pp-metric-value {
+        font-size: 2.1rem;
+        font-weight: 750;
+        line-height: 1.1;
+        margin-top: 4px;
+      }
+
+      .pass-high { color: #22c55e; }      /* green */
+      .pass-moderate { color: #f59e0b; }  /* amber */
+      .pass-low { color: #ef4444; }       /* red */
+
+      /* ===== Streamlit metric tweaks ===== */
       [data-testid="stMetricValue"] { font-size: 1.65rem; }
       [data-testid="stMetricLabel"] { font-size: 0.92rem; opacity: 0.78; }
+      div[data-testid="stMetric"] { padding-top: 6px; padding-bottom: 6px; }
+
+      /* ===== Hide Streamlit header link icon (the little chain) ===== */
+      div[data-testid="stHeaderActionElements"] {
+        display: none !important;
+      }
 
       /* ===== Responsive ===== */
       @media (max-width: 1100px) {
@@ -281,61 +304,11 @@ st.markdown(
         line-height: 1.02 !important;
         letter-spacing: -0.035em !important;
       }
-      /* =========================================================
-   HEADER + METRIC ALIGNMENT FIXES (ADD HERE)
-   ========================================================= */
-
-/* Hide Streamlit header anchor / link icon */
-a[data-testid="stHeaderActionElements"] {
-  display: none !important;
-}
-
-/* Some Streamlit versions use SVG icons instead */
-div[data-testid="stHeader"] svg {
-  display: none !important;
-}
-
-/* Tighten spacing above headers so they don't feel clipped */
-div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stHeader"]) {
-  margin-top: 0.25rem;
-}
-
-/* Make metric blocks align vertically and feel centered */
-div[data-testid="stMetric"] {
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-/* ===== Pass confidence colors ===== */
-.pass-high {
-  color: #22c55e; /* green */
-}
-
-.pass-moderate {
-  color: #f59e0b; /* amber */
-}
-
-.pass-low {
-  color: #ef4444; /* red */
-}
-
-/* Optional: make the big % feel premium */
-.pp-metric-value {
-  font-size: 2.1rem;
-  font-weight: 750;
-  line-height: 1.1;
-  margin-top: 4px;
-}
-
-.pp-metric-label {
-  font-size: 0.92rem;
-  opacity: 0.78;
-}
-
-
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 
