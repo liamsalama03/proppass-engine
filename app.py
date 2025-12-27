@@ -180,131 +180,112 @@ CFG = load_config()
 
 st.markdown(
     """
-<style>
-  /* ===== Page container ===== */
-  .block-container{
-    max-width: 1200px;
-    padding-top: 1.6rem;
-    padding-bottom: 2.6rem;
-    padding-left: 2.4rem !important;
-    padding-right: 2.4rem !important;
-  }
+    <style>
+      /* ===== Page container ===== */
+      .block-container {
+        max-width: 1200px;
+        padding-top: 1.6rem;
+        padding-bottom: 2.6rem;
+        padding-left: 2.4rem !important;
+        padding-right: 2.4rem !important;
+      }
 
-  /* Clean text rendering */
-  h1, h2, h3{ letter-spacing: -0.02em; }
-  .muted{ opacity: 0.72; }
-  .tiny{ font-size: 0.85rem; opacity: 0.72; }
+      h1, h2, h3 { letter-spacing: -0.02em; }
 
-  /* Divider line */
-  .hr{
-    height: 1px;
-    background: rgba(255,255,255,0.08);
-    margin: 16px 0 26px 0;
-  }
+      .muted { opacity: 0.72; }
+      .tiny { font-size: 0.85rem; opacity: 0.72; }
 
-  /* ===== Header ===== */
-  .pp-header{
-    display:flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 22px;
-    width: 100%;
-    margin-top: 18px;
-    margin-bottom: 12px;
-  }
+      .hr {
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+        margin: 16px 0 26px 0;
+      }
 
-  .pp-left{
-    max-width: 720px;
-    min-width: 0;
-  }
+      /* ===== Header ===== */
+      .pp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 24px;
+        width: 100%;
+        margin-top: 18px;
+        margin-bottom: 18px;
+      }
 
-/* ===== FORCE header typography (always wins) ===== */
-.stApp .pp-title{
-  font-size: clamp(3.0rem, 4.2vw, 4.0rem) !important;  /* BIGGER */
-  font-weight: 820 !important;
-  line-height: 1.02 !important;
-  letter-spacing: -0.035em !important;
-  margin: 0 !important;
-}
+      .pp-left { max-width: 720px; }
 
-.stApp .pp-subtitle{
-  font-size: clamp(1.05rem, 1.2vw, 1.25rem) !important;
-  opacity: 0.80 !important;
-  margin-top: 10px !important;
-  line-height: 1.45 !important;
-}
+      .pp-title {
+        font-size: 3.1rem;
+        font-weight: 780;
+        line-height: 1.05;
+        margin: 0;
+        letter-spacing: -0.03em;
+      }
 
+      .pp-subtitle {
+        font-size: 1.05rem;
+        opacity: 0.78;
+        margin-top: 10px;
+        line-height: 1.45;
+      }
 
-  /* ===== Chips ===== */
-  .pp-chiprow{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    justify-content:flex-end;
-    align-items:center;
-    padding-top: 6px;            /* prevents “top clip” */
-  }
+      /* ===== Chips ===== */
+      .pp-chiprow {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: center;
+        padding-top: 6px;
+      }
 
-  .pp-chip{
-    display:inline-flex;          /* prevents border clipping */
-    align-items:center;
-    gap:8px;
+      .pp-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.04);
+        padding: 9px 12px;
+        border-radius: 999px;
+        font-size: 0.88rem;
+        line-height: 1.15;
+        white-space: nowrap;
+        transform: translate3d(0,0,0);
+      }
 
-    border: 1px solid rgba(255,255,255,0.10);
-    background: rgba(255,255,255,0.04);
-    padding: 9px 12px;
-    border-radius: 999px;
+      .pp-chip b { font-weight: 650; }
 
-    font-size: 0.88rem;
-    line-height: 1.15;           /* taller line box = no clip */
-    white-space: nowrap;
+      /* ===== Cards ===== */
+      .soft-card {
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        padding: 22px 18px 14px 18px;
+        background: rgba(255,255,255,0.03);
+      }
 
-    transform: translate3d(0,0,0); /* clean repaint */
-  }
+      /* ===== Metrics ===== */
+      [data-testid="stMetricValue"] { font-size: 1.65rem; }
+      [data-testid="stMetricLabel"] { font-size: 0.92rem; opacity: 0.78; }
 
-  .pp-chip b{ font-weight: 650; }
+      /* ===== Responsive ===== */
+      @media (max-width: 1100px) {
+        .pp-header { flex-direction: column; align-items: flex-start; }
+        .pp-chiprow { justify-content: flex-start; }
+        .pp-title { font-size: 2.4rem; }
+      }
 
-  /* ===== Cards ===== */
-  .soft-card{
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 18px;
-    padding: 22px 18px 14px 18px;   /* more top padding */
-    background: rgba(255,255,255,0.03);
-  }
+      /* ===== NUCLEAR OVERRIDE (final authority) ===== */
+      div.pp-title {
+        font-size: clamp(3.0rem, 4.2vw, 4.0rem) !important;
+        font-weight: 820 !important;
+        line-height: 1.02 !important;
+        letter-spacing: -0.035em !important;
+      }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-  /* ===== Fix Streamlit subheaders “cropping” =====
-     Streamlit subheader markup can clip on some themes.
-  */
-  [data-testid="stSubheader"]{
-    padding-top: 4px;
-  }
-  [data-testid="stSubheader"] h3{
-    margin-top: 0 !important;
-    line-height: 1.2 !important;
-    padding-top: 2px !important;
-    display: inline-block;
-    transform: translate3d(0,0,0);
-  }
-
-  /* ===== Metrics ===== */
-  [data-testid="stMetricValue"]{ font-size: 1.65rem; }
-  [data-testid="stMetricLabel"]{ font-size: 0.92rem; opacity: 0.78; }
-
-  /* ===== Responsive ===== */
-@media (max-width: 1100px) {
-  .pp-header { flex-direction: column; align-items: flex-start; }
-  .pp-chiprow { max-width: 100%; justify-content: flex-start; }
-}
-
-/* ===== NUCLEAR OVERRIDE (final authority) ===== */
-div.pp-title {
-  font-size: clamp(3.0rem, 4.2vw, 4.0rem) !important;
-  font-weight: 820 !important;
-  line-height: 1.02 !important;
-  letter-spacing: -0.035em !important;
-}
-
-</style>
 
 
 
