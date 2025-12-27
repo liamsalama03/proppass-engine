@@ -307,27 +307,28 @@ div[data-testid="stMetric"] {
 }
 /* ===== Pass confidence colors ===== */
 .pass-high {
-  color: #6fcf97;
+  color: #22c55e; /* green */
 }
 
 .pass-moderate {
-  color: #f2c94c;
+  color: #f59e0b; /* amber */
 }
 
 .pass-low {
-  color: #eb5757;
+  color: #ef4444; /* red */
 }
 
-.pass-bar-high {
-  background: linear-gradient(90deg, #4fae7a, #6fcf97);
+/* Optional: make the big % feel premium */
+.pp-metric-value {
+  font-size: 2.1rem;
+  font-weight: 750;
+  line-height: 1.1;
+  margin-top: 4px;
 }
 
-.pass-bar-moderate {
-  background: linear-gradient(90deg, #d6a93b, #f2c94c);
-}
-
-.pass-bar-low {
-  background: linear-gradient(90deg, #c44d4d, #eb5757);
+.pp-metric-label {
+  font-size: 0.92rem;
+  opacity: 0.78;
 }
 
 
