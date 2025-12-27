@@ -505,7 +505,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 # ============================================================
-# PASS PROBABILITY (clean card)
+# PASS PROBABILITY (card + full-width progress bar)
 # ============================================================
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
@@ -515,13 +515,20 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-p1, p2 = st.columns([1, 1])
+# --- Top metrics row ---
+p1, p2, p3 = st.columns([1, 1, 1])
 p1.metric("Pass confidence", f"{pass_pct}%")
-p2.metric("Trades needed (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
-st.caption(f"{pass_label} • EV(R): {ev_r:.3f}")
+p2.metric("Bucket", pass_label.split(" (")[0])  # High / Moderate / Low
+p3.metric("Trades needed (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
 
+st.write("")
 
-# small helper line
+# --- Full-width progress bar across the card ---
+# Streamlit expects 0.0–1.0
+bar_val = max(0, min(100, int(pass_pct))) / 100.0
+st.progress(bar_val)
+
+# --- Helper line under the bar ---
 if ev_r <= 0:
     st.caption("⚠️ EV is negative — pass probability will stay low unless win rate / R multiple improves.")
 else:
@@ -530,6 +537,7 @@ else:
 st.markdown("</div>", unsafe_allow_html=True)
 
 st.write("")
+
 
 
 
