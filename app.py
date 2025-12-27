@@ -305,6 +305,31 @@ div[data-testid="stMetric"] {
   padding-top: 6px;
   padding-bottom: 6px;
 }
+/* ===== Pass confidence colors ===== */
+.pass-high {
+  color: #6fcf97;
+}
+
+.pass-moderate {
+  color: #f2c94c;
+}
+
+.pass-low {
+  color: #eb5757;
+}
+
+.pass-bar-high {
+  background: linear-gradient(90deg, #4fae7a, #6fcf97);
+}
+
+.pass-bar-moderate {
+  background: linear-gradient(90deg, #d6a93b, #f2c94c);
+}
+
+.pass-bar-low {
+  background: linear-gradient(90deg, #c44d4d, #eb5757);
+}
+
 
     </style>
     """,
@@ -468,6 +493,16 @@ def pass_bucket(ev_r_val: float, trades_needed: Optional[float]) -> str:
 
 pass_label = pass_bucket(ev_r, estimated_trades)
 pass_pct = {"High": 88, "Moderate": 79, "Low": 55}.get(pass_label.split()[0], 70)
+# Confidence color classes
+if pass_label.startswith("High"):
+    pass_class = "pass-high"
+    bar_class = "pass-bar-high"
+elif pass_label.startswith("Moderate"):
+    pass_class = "pass-moderate"
+    bar_class = "pass-bar-moderate"
+else:
+    pass_class = "pass-low"
+    bar_class = "pass-bar-low"
 
 
 # ============================================================
@@ -556,6 +591,33 @@ st.caption(
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
+st.markdown(
+    f"""
+    <div class="pp-pass-row">
+      <div class="pp-pass-metric">
+        <div class="pp-pass-label">Pass confidence</div>
+        <div class="pp-pass-value {pass_class}">
+          {pass_pct}%
+        </div>
+      </div>
+
+      <div class="pp-pass-metric">
+        <div class="pp-pass-label">Bucket</div>
+        <div class="pp-pass-bucket {pass_class}">
+          {pass_label}
+        </div>
+      </div>
+
+      <div class="pp-pass-metric">
+        <div class="pp-pass-label">Trades needed (est.)</div>
+        <div class="pp-pass-value">
+          {estimated_trades:.1f}
+        </div>
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 
