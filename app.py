@@ -340,6 +340,22 @@ st.markdown(
         .pp-header { flex-direction: column; align-items: flex-start; }
         .pp-chiprow { max-width: 100%; justify-content: flex-start; }
       }
+/* ===== FORCE header typography (Streamlit sometimes overrides) ===== */
+.stApp .pp-title{
+  font-size: 3.1rem !important;
+  font-weight: 780 !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.03em !important;
+  margin: 0 !important;
+}
+
+.stApp .pp-subtitle{
+  font-size: 1.05rem !important;
+  opacity: 0.78 !important;
+  margin-top: 10px !important;
+  line-height: 1.45 !important;
+}
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -554,15 +570,11 @@ st.markdown(
     <div class="pp-chip"><span class="muted">Mode</span> <b>{risk_mode}</b></div>
   </div>
 </div>
-
 <div class="hr"></div>
 """,
     unsafe_allow_html=True,
 )
 
-
-# repaint nudge (fixes “it appears after scroll” on some browsers)
-st.markdown("<span style='display:block;height:1px;'></span>", unsafe_allow_html=True)
 
 # ============================================================
 # MAIN PAGE HEADER (premium)
