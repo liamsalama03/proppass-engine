@@ -218,21 +218,22 @@ st.markdown(
     min-width: 0;
   }
 
-  /* Force typography (Streamlit sometimes overrides) */
-  .stApp .pp-title{
-    font-size: 3.1rem !important;
-    font-weight: 780 !important;
-    line-height: 1.05 !important;
-    letter-spacing: -0.03em !important;
-    margin: 0 !important;
-  }
+/* ===== FORCE header typography (always wins) ===== */
+.stApp .pp-title{
+  font-size: clamp(3.0rem, 4.2vw, 4.0rem) !important;  /* BIGGER */
+  font-weight: 820 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.035em !important;
+  margin: 0 !important;
+}
 
-  .stApp .pp-subtitle{
-    font-size: 1.05rem !important;
-    opacity: 0.78 !important;
-    margin-top: 10px !important;
-    line-height: 1.45 !important;
-  }
+.stApp .pp-subtitle{
+  font-size: clamp(1.05rem, 1.2vw, 1.25rem) !important;
+  opacity: 0.80 !important;
+  margin-top: 10px !important;
+  line-height: 1.45 !important;
+}
+
 
   /* ===== Chips ===== */
   .pp-chiprow{
@@ -496,8 +497,12 @@ st.markdown(
     f"""
 <div class="pp-header">
   <div class="pp-left">
-    <div class="pp-title">PropPass Engine</div>
-    <div class="pp-subtitle">Real-time risk, sizing, and pass confidence for prop firm evaluations.</div>
+    <div class="pp-title" style="font-size: clamp(3.0rem, 4.2vw, 4.0rem); font-weight: 820; line-height: 1.02; letter-spacing: -0.035em;">
+      PropPass Engine
+    </div>
+    <div class="pp-subtitle" style="font-size: clamp(1.05rem, 1.2vw, 1.25rem); opacity: 0.80; margin-top: 10px; line-height: 1.45;">
+      Real-time risk, sizing, and pass confidence for prop firm evaluations.
+    </div>
   </div>
 
   <div class="pp-chiprow">
@@ -512,6 +517,7 @@ st.markdown(
 """,
     unsafe_allow_html=True,
 )
+
 
 
 # ============================================================
