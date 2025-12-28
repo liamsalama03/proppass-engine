@@ -723,6 +723,8 @@ if state is not None:
 # ============================================================
 # 10) MAIN PAGE (outputs only)
 # ============================================================
+
+# --- Header (HTML only) ---
 st.markdown(
     f"""
 <div class="pp-header">
@@ -744,7 +746,13 @@ st.markdown(
   </div>
 </div>
 <div class="hr"></div>
-# --- PDF Snapshot Download ---
+""",
+    unsafe_allow_html=True,
+)
+
+# --- PDF Snapshot Download (REAL PYTHON, NOT INSIDE MARKDOWN STRING) ---
+from datetime import datetime
+
 snapshot = {
     "title": "PropPass Engine — Snapshot",
     "subtitle": "Current dashboard values exported as a one-page report.",
@@ -757,13 +765,13 @@ snapshot = {
     "pass_label": pass_label,
     "trades_needed": (f"{estimated_trades:.1f}" if estimated_trades is not None else "—"),
     "risk_per_contract": f"${risk_per_contract:,.2f}",
-    "risk_budget": f"${risk_budget:,.0f}" if risk_budget is not None else "—",
+    "risk_budget": (f"${risk_budget:,.0f}" if risk_budget is not None else "—"),
     "max_contracts": str(firm_max_contracts_adj),
     "active_contracts": str(active_contracts),
     "win_rate": f"{win_rate_pct}%",
     "r_multiple": f"{r_multiple:.2f}R",
     "ev_r": f"{ev_r:.3f}",
-    "edge_trade": f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—",
+    "edge_trade": (f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—"),
     "start_balance": f"${float(start_balance):,.0f}",
     "equity": f"${float(equity):,.0f}",
     "closed_balance": f"${float(closed_balance):,.0f}",
@@ -782,12 +790,10 @@ st.download_button(
     data=pdf_bytes,
     file_name=f"PropPass_Snapshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
     mime="application/pdf",
-    use_container_width=False,
 )
 
-""",
-    unsafe_allow_html=True,
-)
+st.write("")  # small spacing after the button
+
 # --- Pass Probability card (CLEAN HTML GRID) ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
@@ -799,9 +805,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ---- Confidence color class ----
 pass_pct_i = int(round(pass_pct))
-
 if pass_pct_i >= 85:
     pass_class = "pass-high"
 elif pass_pct_i >= 70:
@@ -846,6 +850,7 @@ st.markdown(
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
+
 
 
 
