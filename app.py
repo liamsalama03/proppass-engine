@@ -263,75 +263,80 @@ st.markdown(
         background: rgba(255,255,255,0.03);
       }
 
-     /* ===== Pass confidence colors (STRONG OVERRIDE) ===== */
-.pp-kpi-value.pass-high { color: #22c55e !important; }     /* green */
-.pp-kpi-value.pass-moderate { color: #f59e0b !important; } /* amber */
-.pp-kpi-value.pass-low { color: #ef4444 !important; }      /* red */
+      /* ===== Pass Probability layout ===== */
+      .pp-kpi-grid{
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 18px;
+        align-items: end;
+        margin-top: 10px;
+      }
 
-}
+      .pp-kpi{ min-width: 0; }
+      .pp-kpi.center{ text-align: center; }
+      .pp-kpi.right{ text-align: right; }
 
-.pp-kpi{ min-width: 0; }
-.pp-kpi.center{ text-align: center; }
-.pp-kpi.right{ text-align: right; }
+      .pp-kpi-label{
+        font-size: 0.92rem;
+        opacity: 0.78;
+      }
 
-.pp-kpi-label{
-  font-size: 0.92rem;
-  opacity: 0.78;
-}
+      .pp-kpi-value{
+        font-size: 2.15rem;
+        font-weight: 760;
+        line-height: 1.1;
+        margin-top: 6px;
+      }
 
-.pp-kpi-value{
-  font-size: 2.15rem;
-  font-weight: 760;
-  line-height: 1.1;
-  margin-top: 6px;
-}
+      .pp-kpi-value.mid{
+        font-size: 1.9rem;
+      }
 
-.pp-kpi-value.mid{
-  font-size: 1.9rem;
-}
+      /* ===== Pass confidence colors (STRONG OVERRIDE) ===== */
+      .pp-kpi-value.pass-high { color: #22c55e !important; }     /* green */
+      .pp-kpi-value.pass-moderate { color: #f59e0b !important; } /* amber */
+      .pp-kpi-value.pass-low { color: #ef4444 !important; }      /* red */
 
-.pp-progress{
-  margin-top: 16px;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.08);
-  overflow: hidden;
-}
+      .pp-progress{
+        margin-top: 16px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        overflow: hidden;
+      }
 
-.pp-progress > div{
-  height: 100%;
-  width: 0%;
-  border-radius: 999px;
-  background: rgba(59,130,246,0.95); /* clean blue */
-}
+      .pp-progress > div{
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: rgba(59,130,246,0.95);
+      }
 
-/* Mobile: stack KPIs */
-@media (max-width: 900px){
-  .pp-kpi-grid{ grid-template-columns: 1fr; }
-  .pp-kpi.center, .pp-kpi.right{ text-align: left; }
-}
-/* ===== Space out Streamlit dividers + section headings ===== */
-div[data-testid="stDivider"] {
-  margin: 22px 0 28px 0 !important;
-}
+      /* Mobile: stack KPIs */
+      @media (max-width: 900px){
+        .pp-kpi-grid{ grid-template-columns: 1fr; }
+        .pp-kpi.center, .pp-kpi.right{ text-align: left; }
+      }
 
-/* If you're using your custom section title div */
-.pp-section-title{
-  margin-top: 10px !important;
-  margin-bottom: 10px !important;
-  padding-top: 2px;
-}
+      /* ===== Space out Streamlit dividers + section headings ===== */
+      div[data-testid="stDivider"] {
+        margin: 22px 0 28px 0 !important;
+      }
 
-/* If any h2/h3 from Streamlit sneak in */
-h2, h3{
-  margin-top: 14px !important;
-}
+      .pp-section-title{
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
+        padding-top: 2px;
+      }
 
-
+      h2, h3{
+        margin-top: 14px !important;
+      }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 
