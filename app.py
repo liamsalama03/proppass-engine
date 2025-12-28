@@ -11,6 +11,9 @@ import inspect
 
 import pandas as pd
 import streamlit as st
+from io import BytesIO
+from datetime import datetime
+
 
 
 # ============================================================
@@ -349,6 +352,170 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+def build_snapshot_pdf(snapshot: dict) -> bytes:
+    """
+    Build a clean one-page PDF snapshot using reportlab.
+    Returns PDF bytes that can be used in st.download_button.
+    """
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.units import inch
+    except Exception as e:
+        # If reportlab isn't installed on Streamlit Cloud, you'll need it in requirements.txt
+        raise RuntimeError(
+            "PDF export requires 'reportlab'. Add it to requirements.txt and redeploy."
+        ) from e
+
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=letter)
+    width, height = letter
+
+    # --- Layout constants ---
+    left = 0.75 * inch
+    right = width - 0.75 * inch
+    y = height - 0.85 * inch
+    line = 14
+
+    def text(x, y, s, size=11, bold=False):
+        c.setFont("Helvetica-Bold" if bold else "Helvetica", size)
+        c.drawString(x, y, str(s))
+
+    def hr(ypos):
+        c.setLineWidth(1)
+        c.setStrokeColorRGB(0.85, 0.85, 0.85)
+        c.line(left, ypos, right, ypos)
+
+    def kv_row(ypos, items, size=10):
+        """
+        items = [(label, value), ...] drawn across page in columns
+        """
+        col_w = (right - left) / len(items)
+        for i, (k, v) in enumerate(items):
+            x = left + i * col_w
+            c.setFont("Helvetica", size)
+            c.setFillGray(0.35)
+            c.drawString(x, ypos, k)
+            c.setFillGray(0.0)
+            c.setFont("Helvetica-Bold", size + 2)
+            c.drawString(x, ypos - 14, str(v))
+
+    def progress_bar(ypos, pct):
+        pct = max(0, min(int(round(pct)), 100))
+        bar_w = right - left
+        bar_h = 10
+        # background
+        c.setFillColorRGB(0.92, 0.92, 0.92)
+        c.roundRect(left, ypos, bar_w, bar_h, 5, stroke=0, fill=1)
+        # fill
+        # color by confidence
+        if pct >= 85:
+            c.setFillColorRGB(0.13, 0.77, 0.35)   # green
+        elif pct >= 70:
+            c.setFillColorRGB(0.96, 0.62, 0.05)   # amber
+        else:
+            c.setFillColorRGB(0.94, 0.27, 0.27)   # red
+        c.roundRect(left, ypos, bar_w * (pct / 100.0), bar_h, 5, stroke=0, fill=1)
+
+    # --- Header ---
+    text(left, y, snapshot.get("title", "PropPass Engine Snapshot"), size=20, bold=True)
+    y -= 26
+    c.setFillGray(0.35)
+    text(left, y, snapshot.get("subtitle", "Risk, sizing, and pass confidence snapshot."), size=11, bold=False)
+    c.setFillGray(0.0)
+
+    y -= 18
+    hr(y)
+    y -= 20
+
+    # --- Meta row ---
+    kv_row(
+        y,
+        [
+            ("Firm", snapshot["firm"]),
+            ("Account", snapshot["account"]),
+            ("Instrument", snapshot["instrument"]),
+            ("Mode", snapshot["risk_mode"]),
+            ("DD Type", snapshot["dd_type"]),
+        ],
+        size=9,
+    )
+    y -= 48
+
+    # --- Pass Probability section ---
+    text(left, y, "Pass Probability", size=14, bold=True)
+    y -= 18
+    text(left, y, f"Confidence: {snapshot['pass_pct']}%  |  Bucket: {snapshot['pass_label']}  |  Trades needed (est.): {snapshot['trades_needed']}", size=11)
+    y -= 18
+    progress_bar(y, snapshot["pass_pct"])
+    y -= 24
+
+    hr(y)
+    y -= 20
+
+    # --- Sizing & Edge ---
+    text(left, y, "Sizing & Edge", size=14, bold=True)
+    y -= 20
+    kv_row(
+        y,
+        [
+            ("Risk/contract", snapshot["risk_per_contract"]),
+            ("Risk budget", snapshot["risk_budget"]),
+            ("Max contracts", snapshot["max_contracts"]),
+            ("Active contracts", snapshot["active_contracts"]),
+        ],
+        size=9,
+    )
+    y -= 48
+    kv_row(
+        y,
+        [
+            ("Win rate", snapshot["win_rate"]),
+            ("R multiple", snapshot["r_multiple"]),
+            ("EV (R)", snapshot["ev_r"]),
+            ("Edge/trade", snapshot["edge_trade"]),
+        ],
+        size=9,
+    )
+    y -= 58
+
+    hr(y)
+    y -= 20
+
+    # --- Drawdown Engine ---
+    text(left, y, "Drawdown Engine", size=14, bold=True)
+    y -= 20
+    kv_row(
+        y,
+        [
+            ("Start", snapshot["start_balance"]),
+            ("Equity", snapshot["equity"]),
+            ("Closed", snapshot["closed_balance"]),
+            ("Max DD", snapshot["max_dd"]),
+        ],
+        size=9,
+    )
+    y -= 48
+    kv_row(
+        y,
+        [
+            ("HWM", snapshot["hwm"]),
+            ("Trailing line", snapshot["trailing_line"]),
+            ("Buffer", snapshot["buffer"]),
+            ("Engine call", snapshot["engine_call"]),
+        ],
+        size=9,
+    )
+    y -= 60
+
+    # --- Footer ---
+    c.setFillGray(0.45)
+    text(left, 0.6 * inch, snapshot["generated_at"], size=9)
+    c.setFillGray(0.0)
+
+    c.showPage()
+    c.save()
+    return buf.getvalue()
 
 
 
@@ -577,6 +744,47 @@ st.markdown(
   </div>
 </div>
 <div class="hr"></div>
+# --- PDF Snapshot Download ---
+snapshot = {
+    "title": "PropPass Engine — Snapshot",
+    "subtitle": "Current dashboard values exported as a one-page report.",
+    "firm": firm,
+    "account": account,
+    "instrument": instrument,
+    "risk_mode": risk_mode,
+    "dd_type": dd_type or "—",
+    "pass_pct": int(round(pass_pct)),
+    "pass_label": pass_label,
+    "trades_needed": (f"{estimated_trades:.1f}" if estimated_trades is not None else "—"),
+    "risk_per_contract": f"${risk_per_contract:,.2f}",
+    "risk_budget": f"${risk_budget:,.0f}" if risk_budget is not None else "—",
+    "max_contracts": str(firm_max_contracts_adj),
+    "active_contracts": str(active_contracts),
+    "win_rate": f"{win_rate_pct}%",
+    "r_multiple": f"{r_multiple:.2f}R",
+    "ev_r": f"{ev_r:.3f}",
+    "edge_trade": f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—",
+    "start_balance": f"${float(start_balance):,.0f}",
+    "equity": f"${float(equity):,.0f}",
+    "closed_balance": f"${float(closed_balance):,.0f}",
+    "max_dd": f"${float(total_max_dd):,.0f}",
+    "hwm": f"${float(hwm):,.2f}",
+    "trailing_line": (f"${float(trailing_line):,.2f}" if trailing_line is not None else "—"),
+    "buffer": (f"${(float(equity) - float(trailing_line)):,.2f}" if trailing_line is not None else "—"),
+    "engine_call": (used_call or "—"),
+    "generated_at": f"Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+}
+
+pdf_bytes = build_snapshot_pdf(snapshot)
+
+st.download_button(
+    label="Download PDF snapshot",
+    data=pdf_bytes,
+    file_name=f"PropPass_Snapshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+    mime="application/pdf",
+    use_container_width=False,
+)
+
 """,
     unsafe_allow_html=True,
 )
