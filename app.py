@@ -604,6 +604,8 @@ elif pass_pct_i >= 70:
 else:
     pass_class = "pass-low"
 
+trades_txt = f"{estimated_trades:.1f}" if estimated_trades is not None else "—"
+
 st.markdown(
     f"""
     <div class="pp-kpi-grid pp-animate"
@@ -621,15 +623,11 @@ st.markdown(
 
       <div class="pp-kpi right">
         <div class="pp-kpi-label">Trades needed (est.)</div>
-        <div class="pp-kpi-value mid">
-          {estimated_trades:.1f if estimated_trades is not None else "—"}
-        </div>
+        <div class="pp-kpi-value mid">{trades_txt}</div>
       </div>
 
     </div>
-    """,
-    st.markdown(
-    f"""
+
     <div class="pp-progress">
       <div style="width:{pass_pct_i}%;"></div>
     </div>
@@ -641,9 +639,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-)
-
+st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
+
 
 
 
