@@ -303,6 +303,7 @@ st.markdown(
         border-radius: 999px;
         background: rgba(255,255,255,0.08);
         overflow: hidden;
+        animation: ppFadeUp 220ms ease-out;   /* ✅ makes progress bar fade in */
       }
 
       .pp-progress > div{
@@ -310,6 +311,7 @@ st.markdown(
         width: 0%;
         border-radius: 999px;
         background: rgba(59,130,246,0.95);
+        transition: width 650ms ease;         /* ✅ makes fill animate */
       }
 
       /* Mobile: stack KPIs */
@@ -332,26 +334,21 @@ st.markdown(
       h2, h3{
         margin-top: 14px !important;
       }
+
       /* ===== Subtle KPI entrance animation ===== */
-@keyframes ppFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+      @keyframes ppFadeUp {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
 
-.pp-animate {
-  animation: ppFadeUp 220ms ease-out;
-}
-
+      .pp-animate {
+        animation: ppFadeUp 220ms ease-out;
+      }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 
