@@ -263,13 +263,11 @@ st.markdown(
         background: rgba(255,255,255,0.03);
       }
 
-     /* ===== Pass Probability (clean grid) ===== */
-.pp-kpi-grid{
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 26px;
-  margin-top: 12px;
-  align-items: start;
+     /* ===== Pass confidence colors (STRONG OVERRIDE) ===== */
+.pp-kpi-value.pass-high { color: #22c55e !important; }     /* green */
+.pp-kpi-value.pass-moderate { color: #f59e0b !important; } /* amber */
+.pp-kpi-value.pass-low { color: #ef4444 !important; }      /* red */
+
 }
 
 .pp-kpi{ min-width: 0; }
@@ -312,6 +310,23 @@ st.markdown(
   .pp-kpi-grid{ grid-template-columns: 1fr; }
   .pp-kpi.center, .pp-kpi.right{ text-align: left; }
 }
+/* ===== Space out Streamlit dividers + section headings ===== */
+div[data-testid="stDivider"] {
+  margin: 22px 0 28px 0 !important;
+}
+
+/* If you're using your custom section title div */
+.pp-section-title{
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  padding-top: 2px;
+}
+
+/* If any h2/h3 from Streamlit sneak in */
+h2, h3{
+  margin-top: 14px !important;
+}
+
 
     </style>
     """,
