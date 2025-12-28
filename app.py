@@ -332,6 +332,22 @@ st.markdown(
       h2, h3{
         margin-top: 14px !important;
       }
+      /* ===== Subtle KPI entrance animation ===== */
+@keyframes ppFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pp-animate {
+  animation: ppFadeUp 220ms ease-out;
+}
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -580,6 +596,7 @@ st.markdown(
 
 # ---- Confidence color class ----
 pass_pct_i = int(round(pass_pct))
+
 if pass_pct_i >= 85:
     pass_class = "pass-high"
 elif pass_pct_i >= 70:
@@ -587,11 +604,11 @@ elif pass_pct_i >= 70:
 else:
     pass_class = "pass-low"
 
-bucket_clean = pass_label.replace("Low (negative edge)", "Low")
-
 st.markdown(
     f"""
-    <div class="pp-kpi-grid">
+    <div class="pp-kpi-grid pp-animate"
+         style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; margin-top: 14px;">
+
       <div class="pp-kpi">
         <div class="pp-kpi-label">Pass confidence</div>
         <div class="pp-kpi-value {pass_class}">{pass_pct_i}%</div>
@@ -599,27 +616,33 @@ st.markdown(
 
       <div class="pp-kpi center">
         <div class="pp-kpi-label">Bucket</div>
-        <div class="pp-kpi-value mid">{bucket_clean}</div>
+        <div class="pp-kpi-value mid">{pass_label}</div>
       </div>
 
       <div class="pp-kpi right">
         <div class="pp-kpi-label">Trades needed (est.)</div>
-        <div class="pp-kpi-value mid">{(f"{estimated_trades:.1f}" if estimated_trades is not None else "—")}</div>
+        <div class="pp-kpi-value mid">
+          {estimated_trades:.1f if estimated_trades is not None else "—"}
+        </div>
       </div>
+
+    </div>
+    """,
+    st.markdown(
+    f"""
+    <div class="pp-progress">
+      <div style="width:{pass_pct_i}%;"></div>
     </div>
 
-    <div class="pp-progress" aria-label="pass probability bar">
-      <div style="width:{max(0, min(pass_pct_i, 100))}%;"></div>
-    </div>
-
-    <div class="tiny" style="margin-top:10px;">
-      EV(R): {ev_r:.3f} • Expected edge/trade: ${(expected_edge_dollars if expected_edge_dollars is not None else 0):,.2f}
+    <div class="tiny" style="margin-top:8px;">
+      EV(R): {ev_r:.3f} · Expected edge / trade: ${expected_edge_dollars:,.2f}
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-st.markdown("</div>", unsafe_allow_html=True)
+)
+
 st.write("")
 
 
