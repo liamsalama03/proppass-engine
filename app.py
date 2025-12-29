@@ -14,6 +14,10 @@ import streamlit as st
 from io import BytesIO
 from datetime import datetime
 
+# ------------------------------------------------------------
+# Debug (disabled for production)
+# ------------------------------------------------------------
+show_debug = False
 
 
 # ============================================================
