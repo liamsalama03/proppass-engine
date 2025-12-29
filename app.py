@@ -596,32 +596,41 @@ with st.sidebar:
                 step=0.25,
             )
 
-        with st.expander("Account State", expanded=False):
-    st.caption(
-        "Default = **between trades** (no open positions). "
-        "If you're in a trade and want true floating PnL, enable the equity override."
-    )
+                with st.expander("3) Account State", expanded=False):
+            st.caption(
+                "Default = **between trades** (no open positions). "
+                "If you have open positions, enable the equity override."
+            )
 
-    start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
-    realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+            start_balance = st.number_input(
+                "Starting balance ($)", value=50000.0, step=500.0
+            )
 
-    use_equity_override = st.checkbox(
-        "I have open positions (enter current equity)",
-        value=False,
-        help="If off, equity is assumed to equal your closed/realized balance."
-    )
+            realized_pnl = st.number_input(
+                "Current realized PnL ($)", value=0.0, step=100.0
+            )
 
-    # Closed balance is always defined
-    closed_balance = float(start_balance) + float(realized_pnl)
+            use_equity_override = st.checkbox(
+                "I have open positions (enter current equity)",
+                value=False,
+            )
 
-    if use_equity_override:
-        equity = st.number_input("Current equity ($)", value=float(closed_balance), step=100.0)
-    else:
-        equity = float(closed_balance)
-        st.caption(f"Equity assumed = closed balance: **${equity:,.0f}**")
+            closed_balance = float(start_balance) + float(realized_pnl)
 
+            if use_equity_override:
+                equity = st.number_input(
+                    "Current equity ($)",
+                    value=float(closed_balance),
+                    step=100.0,
+                )
+            else:
+                equity = float(closed_balance)
+                st.caption(f"Equity assumed = closed balance: **${equity:,.0f}**")
 
-        submitted = st.form_submit_button("Update dashboard", use_container_width=True)
+        submitted = st.form_submit_button(
+            "Update dashboard", use_container_width=True
+        )
+
 
 
 
