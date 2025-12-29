@@ -942,21 +942,35 @@ dd_label_map = {
 dd_type_label = dd_label_map.get(dd_type, str(dd_type) if dd_type else "—")
 
 with st.expander("Account rules (how this evaluation is judged)", expanded=False):
-    st.caption("These rules come from your selected firm/account. This tool uses them automatically in sizing and pass confidence.")
+    st.caption(
+        "These rules come from your selected firm/account. "
+        "This tool uses them automatically in sizing and pass confidence."
+    )
 
-    # Quick summary (beginner-friendly)
+    # Quick summary
     a1, a2 = st.columns(2)
+
     with a1:
         st.markdown("**Firm / Account**")
         st.write(f"{firm} • {account}")
+
         st.markdown("**Drawdown type**")
         st.write(dd_type_label)
 
     with a2:
         st.markdown("**Profit target**")
-        st.write("N/A" if (profit_target is None or profit_target <= 0) else f"${profit_target:,.0f}")
+        st.write(
+            "N/A"
+            if profit_target is None or profit_target <= 0
+            else f"${profit_target:,.0f}"
+        )
+
         st.markdown("**Max drawdown (allowed loss)**")
-        st.write("N/A" if total_max_dd is None else f"${total_max_dd:,.0f}")
+        st.write(
+            "N/A"
+            if total_max_dd is None
+            else f"${total_max_dd:,.0f}"
+        )
 
     st.divider()
 
@@ -969,16 +983,20 @@ with st.expander("Account rules (how this evaluation is judged)", expanded=False
     )
 
     st.markdown("### Limits for this account")
+
     daily_loss_display = (
-    "N/A"
-    if daily_max_loss is None or pd.isna(daily_max_loss)
-    else f"${daily_max_loss:,.0f}"
-)
-st.write(f"- **Daily max loss:** {daily_loss_display}")
+        "N/A"
+        if daily_max_loss is None or pd.isna(daily_max_loss)
+        else f"${daily_max_loss:,.0f}"
+    )
+    st.write(f"- **Daily max loss:** {daily_loss_display}")
 
-    st.write(f"- **Firm max contracts:** {firm_max_contracts if firm_max_contracts is not None else '—'}")
+    st.write(
+        f"- **Firm max contracts:** "
+        f"{firm_max_contracts if firm_max_contracts is not None else '—'}"
+    )
 
-    # Optional: keep the raw config row available, but not shoved in their face
+    # Optional: advanced details
     with st.expander("Show raw config (advanced)", expanded=False):
         st.caption("This is the exact config row driving the dashboard.")
         st.dataframe(pd.DataFrame([rule]), use_container_width=True)
