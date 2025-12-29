@@ -969,7 +969,13 @@ with st.expander("Account rules (how this evaluation is judged)", expanded=False
     )
 
     st.markdown("### Limits for this account")
-    st.write(f"- **Daily max loss:** {'N/A' if daily_max_loss is None else f'${daily_max_loss:,.0f}'}")
+    daily_loss_display = (
+    "N/A"
+    if daily_max_loss is None or pd.isna(daily_max_loss)
+    else f"${daily_max_loss:,.0f}"
+)
+st.write(f"- **Daily max loss:** {daily_loss_display}")
+
     st.write(f"- **Firm max contracts:** {firm_max_contracts if firm_max_contracts is not None else '—'}")
 
     # Optional: keep the raw config row available, but not shoved in their face
