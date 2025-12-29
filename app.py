@@ -911,25 +911,42 @@ st.write("")
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
 st.markdown('<div class="pp-section-title">Drawdown Engine</div>', unsafe_allow_html=True)
+st.caption("Tracks your loss limits and how close you are to failing the evaluation.")
 
+# --- Top row: balances ---
 d1, d2, d3, d4 = st.columns(4)
-d1.metric("Start balance", f"${float(start_balance):,.0f}")
-d2.metric("Equity", f"${float(equity):,.0f}")
-d3.metric("Closed balance", f"${closed_balance:,.0f}")
-d4.metric("Max DD", f"${total_max_dd:,.0f}")
+d1.metric("Starting balance", f"${float(start_balance):,.0f}")
+d2.metric("Current equity", f"${float(equity):,.0f}")
+d3.metric("Closed balance (realized)", f"${closed_balance:,.0f}")
+d4.metric("Max loss allowed", f"${total_max_dd:,.0f}")
 
-dd1, dd2, dd3, dd4 = st.columns(4)  # <-- force 4 columns for alignment
-dd1.metric("High Water Mark (HWM)", f"${hwm:,.2f}")
-dd2.metric("Trailing line", f"${trailing_line:,.2f}" if trailing_line is not None else "—")
-dd3.metric("Engine call used", used_call or "—")
+# --- Second row: rule mechanics ---
+dd1, dd2, dd3, dd4 = st.columns(4)  # keep alignment
+dd1.metric("Peak balance reached", f"${hwm:,.2f}")
+dd2.metric("Failure line", f"${trailing_line:,.2f}" if trailing_line is not None else "—")
+dd3.metric("Rule applied", used_call or "—")
 dd4.metric("", "")  # blank spacer
 
+# --- Buffer messaging (action-oriented) ---
 if trailing_line is not None:
     buffer_amt = float(equity) - float(trailing_line)
-    st.caption(f"Buffer to trailing line: ${buffer_amt:,.2f} (equity − trailing line)")
+
+    if buffer_amt <= 0:
+        st.error("You are at or beyond the failure line. Stop trading.")
+    elif buffer_amt < 0.25 * float(total_max_dd):
+        st.warning(
+            f"Caution: Only ${buffer_amt:,.0f} of loss buffer remains. "
+            "Consider reducing size or stopping."
+        )
+    else:
+        st.caption(
+            f"You can lose **${buffer_amt:,.2f}** more before failing "
+            "(current equity − failure line)."
+        )
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
+
 
 
 # --- Account rules (outputs only) ---
