@@ -600,7 +600,7 @@ with st.sidebar:
                 step=0.25,
             )
 
-        with st.expander("3) Account State", expanded=False):
+with st.expander("3) Account State", expanded=False):
     st.caption(
         "Use this tool **between trades**. If you have no open positions, "
         "**current equity should equal your realized/closed balance**."
@@ -609,6 +609,7 @@ with st.sidebar:
     start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
     equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
     realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+
 
 
      
