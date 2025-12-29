@@ -603,11 +603,15 @@ with st.sidebar:
             )
 
             start_balance = st.number_input(
-                "Starting balance ($)", value=50000.0, step=500.0
+                "Starting balance ($)",
+                value=50000.0,
+                step=500.0,
             )
 
             realized_pnl = st.number_input(
-                "Current realized PnL ($)", value=0.0, step=100.0
+                "Current realized PnL ($)",
+                value=0.0,
+                step=100.0,
             )
 
             use_equity_override = st.checkbox(
@@ -625,11 +629,15 @@ with st.sidebar:
                 )
             else:
                 equity = float(closed_balance)
-                st.caption(f"Equity assumed = closed balance: **${equity:,.0f}**")
+                st.caption(
+                    f"Equity assumed = closed balance: **${equity:,.0f}**"
+                )
 
         submitted = st.form_submit_button(
-            "Update dashboard", use_container_width=True
+            "Update dashboard",
+            use_container_width=True,
         )
+
 
 
 
