@@ -932,55 +932,49 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
 
 
-# --- Rule details (outputs only) ---
-with st.expander("Rule details (what this account is using)", expanded=False):
-    st.caption("This is the exact config row driving the dashboard.")
-    st.dataframe(pd.DataFrame([rule]), use_container_width=True)
+# --- Account rules (outputs only) ---
+dd_label_map = {
+    "EOD_TRAIL": "End-of-day trailing drawdown",
+    "BALANCE_TRAIL": "Balance trailing drawdown",
+    "EQUITY_TRAIL": "Equity trailing drawdown",
+    "STATIC": "Static drawdown",
+}
+dd_type_label = dd_label_map.get(dd_type, str(dd_type) if dd_type else "—")
 
-    st.markdown("**Interpretation**")
-    st.write(f"- **Firm / Account:** {firm} — {account}")
-    st.write(f"- **DD Type:** {dd_type or '—'}")
-    st.write(f"- **Daily max loss:** {('N/A' if daily_max_loss is None else f'${daily_max_loss:,.0f}')}")
-    st.write(f"- **Total max DD:** ${total_max_dd:,.0f}")
-    st.write(f"- **Profit target:** {('N/A' if profit_target <= 0 else f'${profit_target:,.0f}')}")
-    st.write(f"- **Firm max contracts:** {firm_max_contracts}")
+with st.expander("Account rules (how this evaluation is judged)", expanded=False):
+    st.caption("These rules come from your selected firm/account. This tool uses them automatically in sizing and pass confidence.")
 
-# --- Debug (hidden unless enabled) ---
-if show_debug:
-    with st.expander("Debug / Internals", expanded=False):
-        debug = {
-            "firm": firm,
-            "account": account,
-            "instrument": instrument,
-            "point_value": point_value,
-            "risk_mode": risk_mode,
-            "win_rate_pct": win_rate_pct,
-            "win_rate": win_rate,
-            "r_multiple": r_multiple,
-            "stop_points": stop_points,
-            "risk_per_contract": risk_per_contract,
-            "ev_r": ev_r,
-            "risk_frac_effective": risk_frac_effective,
-            "risk_budget": risk_budget,
-            "contracts_by_risk": contracts_by_risk,
-            "firm_max_contracts": firm_max_contracts,
-            "active_contracts": active_contracts,
-            "expected_edge_dollars": expected_edge_dollars,
-            "profit_target": profit_target,
-            "current_realized": current_realized,
-            "remaining_profit": remaining_profit,
-            "estimated_trades": estimated_trades,
-            "dd_type": dd_type,
-            "start_balance": float(start_balance),
-            "equity": float(equity),
-            "realized_pnl": float(realized_pnl),
-            "closed_balance": float(closed_balance),
-            "hwm": float(hwm),
-            "max_dd": float(total_max_dd),
-            "trailing_line": float(trailing_line) if trailing_line is not None else None,
-            "engine_call_used": used_call,
-            "state_type": type(state).__name__ if state is not None else None,
-        }
-        st.json(debug)
-        if st.session_state.get("show_debug", False):
+    # Quick summary (beginner-friendly)
+    a1, a2 = st.columns(2)
+    with a1:
+        st.markdown("**Firm / Account**")
+        st.write(f"{firm} • {account}")
+        st.markdown("**Drawdown type**")
+        st.write(dd_type_label)
+
+    with a2:
+        st.markdown("**Profit target**")
+        st.write("N/A" if (profit_target is None or profit_target <= 0) else f"${profit_target:,.0f}")
+        st.markdown("**Max drawdown (allowed loss)**")
+        st.write("N/A" if total_max_dd is None else f"${total_max_dd:,.0f}")
+
+    st.divider()
+
+    st.markdown("### How this evaluation is judged")
+    st.markdown(
+        "- **Max loss:** If your account goes beyond the allowed drawdown, the evaluation ends.\n"
+        "- **Trailing drawdown (if applicable):** The max loss line can move up as your account reaches new highs.\n"
+        "- **Profit target:** You pass after reaching the target while staying within the drawdown rules.\n"
+        "- **Position limits:** Your size is capped by the firm’s max contract rule and your risk settings."
+    )
+
+    st.markdown("### Limits for this account")
+    st.write(f"- **Daily max loss:** {'N/A' if daily_max_loss is None else f'${daily_max_loss:,.0f}'}")
+    st.write(f"- **Firm max contracts:** {firm_max_contracts if firm_max_contracts is not None else '—'}")
+
+    # Optional: keep the raw config row available, but not shoved in their face
+    with st.expander("Show raw config (advanced)", expanded=False):
+        st.caption("This is the exact config row driving the dashboard.")
+        st.dataframe(pd.DataFrame([rule]), use_container_width=True)
+
 
