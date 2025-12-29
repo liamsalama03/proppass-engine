@@ -569,63 +569,79 @@ with st.sidebar:
     st.divider()
 
     # ============================
-    # 2) & 3) Everything else (form)
-    # ============================
-    with st.form("controls_form", border=False):
+# 2) & 3) Everything else (form)
+# ============================
+with st.form("controls_form", border=False):
 
-        with st.expander("2) Your Edge", expanded=True):
-            instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
-            risk_mode = st.radio(
-                "Risk mode",
-                ["Safe", "Standard", "Aggressive"],
-                horizontal=True,
-                index=1,
-            )
+    # ----------------------------
+    # 2) Your Edge
+    # ----------------------------
+    with st.expander("2) Your Edge", expanded=True):
+        instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
 
-            st.divider()
+        risk_mode = st.radio(
+            "Risk mode",
+            ["Safe", "Standard", "Aggressive"],
+            horizontal=True,
+            index=1,
+        )
 
-            win_rate_pct = st.slider("Win rate (%)", 1, 99, 56)
-            r_multiple = st.number_input(
-                "R multiple (avg win / avg loss)",
-                min_value=0.1,
-                max_value=10.0,
-                value=2.0,
-                step=0.1,
-            )
-            stop_points = st.number_input(
-                "Stop size (points)",
-                min_value=0.25,
-                max_value=500.0,
-                value=30.0,
-                step=0.25,
-            )
+        st.divider()
 
-with st.expander("3) Account State", expanded=False):
-    st.caption(
-        "Use this tool **between trades**. If you have no open positions, "
-        "**current equity should equal your realized/closed balance**."
+        win_rate_pct = st.slider("Win rate (%)", 1, 99, 56)
+
+        r_multiple = st.number_input(
+            "R multiple (avg win / avg loss)",
+            min_value=0.1,
+            max_value=10.0,
+            value=2.0,
+            step=0.1,
+        )
+
+        stop_points = st.number_input(
+            "Stop size (points)",
+            min_value=0.25,
+            max_value=500.0,
+            value=30.0,
+            step=0.25,
+        )
+
+    # ----------------------------
+    # 3) Account State
+    # ----------------------------
+    with st.expander("3) Account State", expanded=False):
+        st.caption(
+            "Use this tool **between trades**. "
+            "If you have no open positions, "
+            "**current equity should equal your realized/closed balance**."
+        )
+
+        start_balance = st.number_input(
+            "Starting balance ($)",
+            value=50000.0,
+            step=500.0,
+        )
+
+        equity = st.number_input(
+            "Current equity ($)",
+            value=50000.0,
+            step=100.0,
+        )
+
+        realized_pnl = st.number_input(
+            "Current realized PnL ($)",
+            value=0.0,
+            step=100.0,
+        )
+
+    # ----------------------------
+    # Submit (MUST be inside form)
+    # ----------------------------
+    submitted = st.form_submit_button(
+        "Update dashboard",
+        use_container_width=True,
     )
 
-    start_balance = st.number_input(
-        "Starting balance ($)",
-        value=50000.0,
-        step=500.0,
-    )
-    equity = st.number_input(
-        "Current equity ($)",
-        value=50000.0,
-        step=100.0,
-    )
-    realized_pnl = st.number_input(
-        "Current realized PnL ($)",
-        value=0.0,
-        step=100.0,
-    )
-
-submitted = st.form_submit_button(
-    "Update dashboard",
-    use_container_width=True,
-)
 
 
 
