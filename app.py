@@ -596,7 +596,7 @@ with st.sidebar:
                 step=0.25,
             )
 
-                with st.expander("3) Account State", expanded=False):
+        with st.expander("3) Account State", expanded=False):
             st.caption(
                 "Default = **between trades** (no open positions). "
                 "If you have open positions, enable the equity override."
