@@ -606,15 +606,27 @@ with st.expander("3) Account State", expanded=False):
         "**current equity should equal your realized/closed balance**."
     )
 
-    start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
-    equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
-    realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+    start_balance = st.number_input(
+        "Starting balance ($)",
+        value=50000.0,
+        step=500.0,
+    )
+    equity = st.number_input(
+        "Current equity ($)",
+        value=50000.0,
+        step=100.0,
+    )
+    realized_pnl = st.number_input(
+        "Current realized PnL ($)",
+        value=0.0,
+        step=100.0,
+    )
 
+submitted = st.form_submit_button(
+    "Update dashboard",
+    use_container_width=True,
+)
 
-
-     
-
-    submitted = st.form_submit_button("Update dashboard", use_container_width=True)
 
 
 
