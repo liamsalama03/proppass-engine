@@ -526,6 +526,7 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
 
 # ============================================================
 # 6) Sidebar — firm/account update instantly, rest uses a form
+#     (Option 2 cleanup: sections + same keys + same logic)
 # ============================================================
 
 firms = sorted([x for x in CFG["Firm"].unique() if x])
@@ -541,56 +542,69 @@ with st.sidebar:
     if "account_sel" not in st.session_state:
         st.session_state.account_sel = None
 
-    # --- Instant controls (NOT in the form) ---
-    firm = st.selectbox("Prop firm", firms, key="firm_sel")
+    # ============================
+    # 1) Account & Rules (instant)
+    # ============================
+    with st.expander("1) Account & Rules", expanded=True):
+        firm = st.selectbox("Prop firm", firms, key="firm_sel")
 
-    df_firm = CFG[CFG["Firm"] == firm].copy()
-    accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
+        df_firm = CFG[CFG["Firm"] == firm].copy()
+        accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
 
-    # Reset account if invalid for this firm
-    if st.session_state.account_sel not in accounts:
-        st.session_state.account_sel = accounts[0] if accounts else None
+        # Reset account if invalid for this firm
+        if st.session_state.account_sel not in accounts:
+            st.session_state.account_sel = accounts[0] if accounts else None
 
-    account = st.selectbox("Account", accounts, key="account_sel", disabled=(len(accounts) == 0))
+        account = st.selectbox(
+            "Account",
+            accounts,
+            key="account_sel",
+            disabled=(len(accounts) == 0),
+        )
 
     st.divider()
 
-    # --- Form controls (apply when user clicks Update) ---
+    # ============================
+    # 2) & 3) Everything else (form)
+    # ============================
     with st.form("controls_form", border=False):
-        instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
-        risk_mode = st.radio("Risk mode", ["Safe", "Standard", "Aggressive"], horizontal=True, index=1)
 
-        st.divider()
+        with st.expander("2) Your Edge", expanded=True):
+            instrument = st.selectbox("Instrument", ["MNQ", "NQ"], index=0)
+            risk_mode = st.radio(
+                "Risk mode",
+                ["Safe", "Standard", "Aggressive"],
+                horizontal=True,
+                index=1,
+            )
 
-        win_rate_pct = st.slider("Win rate (%)", min_value=1, max_value=99, value=56)
-        r_multiple = st.number_input(
-            "R multiple (avg win / avg loss)",
-            min_value=0.1,
-            max_value=10.0,
-            value=2.0,
-            step=0.1,
-        )
-        stop_points = st.number_input(
-            "Stop size (points)",
-            min_value=0.25,
-            max_value=500.0,
-            value=30.0,
-            step=0.25,
-        )
+            st.divider()
 
-        st.divider()
-        st.subheader("Account state")
+            win_rate_pct = st.slider("Win rate (%)", 1, 99, 56)
+            r_multiple = st.number_input(
+                "R multiple (avg win / avg loss)",
+                min_value=0.1,
+                max_value=10.0,
+                value=2.0,
+                step=0.1,
+            )
+            stop_points = st.number_input(
+                "Stop size (points)",
+                min_value=0.25,
+                max_value=500.0,
+                value=30.0,
+                step=0.25,
+            )
 
-        start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
-        equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
-        realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+        with st.expander("3) Account State", expanded=False):
+            start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
+            equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
+            realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
 
-        show_debug = st.checkbox("Show debug panel", value=False)
+        with st.expander("Advanced (optional)", expanded=False):
+            show_debug = st.checkbox("Show debug panel", value=False)
 
         submitted = st.form_submit_button("Update dashboard", use_container_width=True)
-
-# If the form hasn't been submitted yet, Streamlit still provides widget values,
-# so you don't need special fallback logic. (This is just a safety note.)
 
 
 
