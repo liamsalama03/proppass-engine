@@ -601,8 +601,7 @@ with st.sidebar:
             equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
             realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
 
-        with st.expander("Advanced (optional)", expanded=False):
-            show_debug = st.checkbox("Show debug panel", value=False)
+     
 
         submitted = st.form_submit_button("Update dashboard", use_container_width=True)
 
