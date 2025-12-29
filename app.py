@@ -601,9 +601,15 @@ with st.sidebar:
             )
 
         with st.expander("3) Account State", expanded=False):
-            start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
-            equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
-            realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+    st.caption(
+        "Use this tool **between trades**. If you have no open positions, "
+        "**current equity should equal your realized/closed balance**."
+    )
+
+    start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
+    equity = st.number_input("Current equity ($)", value=50000.0, step=100.0)
+    realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+
 
      
 
@@ -911,7 +917,11 @@ st.write("")
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
 st.markdown('<div class="pp-section-title">Drawdown Engine</div>', unsafe_allow_html=True)
-st.caption("Tracks your loss limits and how close you are to failing the evaluation.")
+st.caption(
+    "Use this tool **between trades**. If you have no open positions, "
+    "**current equity should equal your realized/closed balance**."
+)
+
 
 # --- Top row: balances ---
 d1, d2, d3, d4 = st.columns(4)
