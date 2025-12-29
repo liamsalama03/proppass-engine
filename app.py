@@ -947,7 +947,7 @@ with st.expander("Rule details (what this account is using)", expanded=False):
 
 # --- Debug (hidden unless enabled) ---
 if show_debug:
-    with st.expander("Debug / Internals", expanded=True):
+    with st.expander("Debug / Internals", expanded=False):
         debug = {
             "firm": firm,
             "account": account,
@@ -982,4 +982,5 @@ if show_debug:
             "state_type": type(state).__name__ if state is not None else None,
         }
         st.json(debug)
-        st.caption("If something looks off, this panel usually tells you why fast.")
+        if st.session_state.get("show_debug", False):
+
