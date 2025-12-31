@@ -855,7 +855,13 @@ st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 st.markdown(
     """
     <div class="pp-section-title">Pass Probability</div>
-    <div class="pp-section-desc">A quick read on how likely this plan reaches target before hitting drawdown.</div>
+    <div class="pp-section-desc">
+      Estimates how likely you reach the profit target using <b>realized (closed) PnL</b>
+      and your edge assumptions.
+      <span class="muted">
+        Live equity is only used by the Drawdown Engine when positions are open.
+      </span>
+    </div>
     """,
     unsafe_allow_html=True,
 )
@@ -881,12 +887,12 @@ st.markdown(
       </div>
 
       <div class="pp-kpi center">
-        <div class="pp-kpi-label">Bucket</div>
+        <div class="pp-kpi-label">Confidence bucket</div>
         <div class="pp-kpi-value mid">{pass_label}</div>
       </div>
 
       <div class="pp-kpi right">
-        <div class="pp-kpi-label">Trades needed (est.)</div>
+        <div class="pp-kpi-label">Est. trades to target (closed)</div>
         <div class="pp-kpi-value mid">{trades_txt}</div>
       </div>
 
@@ -897,7 +903,7 @@ st.markdown(
     </div>
 
     <div class="tiny" style="margin-top:8px;">
-      EV(R): {ev_r:.3f} · Expected edge / trade: ${expected_edge_dollars:,.2f}
+      EV(R): {ev_r:.3f} · Expected edge per trade: ${expected_edge_dollars:,.2f}
     </div>
     """,
     unsafe_allow_html=True,
@@ -905,6 +911,7 @@ st.markdown(
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
+
 
 
 
