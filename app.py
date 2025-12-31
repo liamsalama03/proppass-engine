@@ -680,10 +680,21 @@ point_value = 20.0 if instrument == "NQ" else 2.0
 # If daily max loss is N/A, use total DD as practical cap for sizing
 risk_budget = daily_max_loss if (daily_max_loss is not None and daily_max_loss > 0) else total_max_dd
 
-# Risk frac (config or fallback ladder)
-risk_frac = rule.get("RiskFracDailyDDPerTrade")  # optional
+# Risk frac (mode-aware)
+# If the config row has a Mode + RiskFrac, only apply it when it matches the selected risk_mode.
+rule_mode = (rule.get("Mode") or "").strip()
+risk_frac_cfg = rule.get("RiskFracDailyDDPerTrade")  # may be None
+
 fallback_frac = {"Safe": 0.10, "Standard": 0.15, "Aggressive": 0.25}[risk_mode]
-risk_frac_effective = risk_frac if (risk_frac is not None and risk_frac > 0) else fallback_frac
+
+use_cfg_frac = (
+    (risk_frac_cfg is not None)
+    and (risk_frac_cfg > 0)
+    and (rule_mode == "" or rule_mode == risk_mode)
+)
+
+risk_frac_effective = risk_frac_cfg if use_cfg_frac else fallback_frac
+
 
 
 # ============================================================
