@@ -13,6 +13,8 @@ import pandas as pd
 import streamlit as st
 from io import BytesIO
 from datetime import datetime
+import re
+
 
 
 # ============================================================
@@ -466,8 +468,7 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
     c.save()
     return buf.getvalue()
 
-
-# ============================================================
+  # ============================================================
 # 6) Sidebar — firm/account update instantly, rest uses a form
 # ============================================================
 
@@ -482,12 +483,23 @@ with st.sidebar:
         st.error("No firms found in config.")
         st.stop()
 
+    # --------------------------
+    # Session state defaults
+    # --------------------------
     if "firm_sel" not in st.session_state:
         st.session_state.firm_sel = default_firm
     if "account_sel" not in st.session_state:
         st.session_state.account_sel = None
 
-    # --- Instant: firm/account ---
+    # Seed defaults for account-state keys (only once)
+    if "_pp_realized_pnl" not in st.session_state:
+        st.session_state["_pp_realized_pnl"] = 0.0
+    if "_pp_use_equity_override" not in st.session_state:
+        st.session_state["_pp_use_equity_override"] = False
+
+    # ==========================
+    # 1) Account & Rules (instant)
+    # ==========================
     with st.expander("Account & Rules", expanded=True):
         firm = st.selectbox("Prop firm", firms, key="firm_sel")
 
@@ -505,7 +517,9 @@ with st.sidebar:
 
     st.divider()
 
-    # --- FORM: everything else ---
+    # ==========================
+    # 2) Everything else (FORM)
+    # ==========================
     with st.form("controls_form", border=False):
 
         with st.expander("Your Edge", expanded=True):
@@ -538,21 +552,51 @@ with st.sidebar:
                 step=0.25,
             )
 
+        # --------------------------
+        # Account State (account-driven default start balance)
+        # --------------------------
+        acct_default = _account_to_start_balance(account, fallback=50000.0)
+
+        # When account changes, reset start balance to match the selected account
+        if st.session_state.get("_pp_last_account") != account:
+            st.session_state["_pp_last_account"] = account
+            st.session_state["_pp_start_balance"] = acct_default
+
         with st.expander("Account State", expanded=False):
             st.caption(
                 "Default = **between trades** (no open positions). "
                 "If you have open positions, enable the equity override."
             )
 
-            start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
-            realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
+            start_balance = st.number_input(
+                "Starting balance ($)",
+                step=500.0,
+                key="_pp_start_balance",
+            )
 
-            use_equity_override = st.checkbox("I have open positions (enter current equity)", value=False)
+            realized_pnl = st.number_input(
+                "Current realized PnL ($)",
+                step=100.0,
+                key="_pp_realized_pnl",
+            )
+
+            use_equity_override = st.checkbox(
+                "I have open positions (enter current equity)",
+                key="_pp_use_equity_override",
+            )
 
             closed_balance = float(start_balance) + float(realized_pnl)
 
             if use_equity_override:
-                equity = st.number_input("Current equity ($)", value=float(closed_balance), step=100.0)
+                # default equity to closed_balance unless user already typed something
+                if "_pp_equity" not in st.session_state:
+                    st.session_state["_pp_equity"] = float(closed_balance)
+
+                equity = st.number_input(
+                    "Current equity ($)",
+                    step=100.0,
+                    key="_pp_equity",
+                )
             else:
                 equity = float(closed_balance)
                 st.caption(f"Equity assumed = closed balance: **{_money(equity)}**")
