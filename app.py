@@ -27,6 +27,20 @@ st.set_page_config(page_title="PropPass Engine", layout="wide")
 # ============================================================
 # Helpers (guard rails + formatting)
 # ============================================================
+def _account_to_start_balance(account_str: str, fallback: float = 50000.0) -> float:
+    """
+    Extracts starting balance from account strings like:
+    '50K', '100K (Advanced)', '25K (Pro+)', etc.
+    """
+    if not account_str:
+        return float(fallback)
+
+    s = str(account_str).upper()
+    m = re.search(r"(\d+)\s*K", s)
+    if m:
+        return float(m.group(1)) * 1000.0
+
+    return float(fallback)
 
 def _is_num(x) -> bool:
     try:
