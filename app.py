@@ -14,17 +14,43 @@ import streamlit as st
 from io import BytesIO
 from datetime import datetime
 
-# ------------------------------------------------------------
-# Debug (disabled for production)
-# ------------------------------------------------------------
-show_debug = False
-
 
 # ============================================================
 # 0) Page config (MUST be before most UI calls)
 # ============================================================
 
 st.set_page_config(page_title="PropPass Engine", layout="wide")
+
+
+# ============================================================
+# Helpers (guard rails + formatting)
+# ============================================================
+
+def _is_num(x) -> bool:
+    try:
+        if x is None:
+            return False
+        if isinstance(x, float) and pd.isna(x):
+            return False
+        float(x)
+        return True
+    except Exception:
+        return False
+
+
+def _f(x, default: float = 0.0) -> float:
+    """Safe float conversion."""
+    return float(x) if _is_num(x) else float(default)
+
+
+def _money(x, decimals: int = 0) -> str:
+    if not _is_num(x):
+        return "—"
+    return f"${float(x):,.{decimals}f}"
+
+
+def _clamp(x: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, x))
 
 
 # ============================================================
@@ -188,7 +214,6 @@ CFG = load_config()
 st.markdown(
     """
     <style>
-      /* ===== Page container ===== */
       .block-container {
         max-width: 1200px;
         padding-top: 1.6rem;
@@ -196,19 +221,14 @@ st.markdown(
         padding-left: 2.4rem !important;
         padding-right: 2.4rem !important;
       }
-
       h1, h2, h3 { letter-spacing: -0.02em; }
-
       .muted { opacity: 0.72; }
       .tiny { font-size: 0.85rem; opacity: 0.72; }
-
       .hr {
         height: 1px;
         background: rgba(255,255,255,0.08);
         margin: 16px 0 26px 0;
       }
-
-      /* ===== Header ===== */
       .pp-header {
         display: flex;
         justify-content: space-between;
@@ -218,25 +238,7 @@ st.markdown(
         margin-top: 18px;
         margin-bottom: 18px;
       }
-
       .pp-left { max-width: 720px; }
-
-      .pp-title {
-        font-size: 3.1rem;
-        font-weight: 780;
-        line-height: 1.05;
-        margin: 0;
-        letter-spacing: -0.03em;
-      }
-
-      .pp-subtitle {
-        font-size: 1.05rem;
-        opacity: 0.78;
-        margin-top: 10px;
-        line-height: 1.45;
-      }
-
-      /* ===== Chips ===== */
       .pp-chiprow {
         display: flex;
         gap: 10px;
@@ -245,7 +247,6 @@ st.markdown(
         align-items: center;
         padding-top: 6px;
       }
-
       .pp-chip {
         display: inline-flex;
         align-items: center;
@@ -259,18 +260,13 @@ st.markdown(
         white-space: nowrap;
         transform: translate3d(0,0,0);
       }
-
       .pp-chip b { font-weight: 650; }
-
-      /* ===== Cards ===== */
       .soft-card {
         border: 1px solid rgba(255,255,255,0.08);
         border-radius: 18px;
         padding: 22px 18px 14px 18px;
         background: rgba(255,255,255,0.03);
       }
-
-      /* ===== Pass Probability layout ===== */
       .pp-kpi-grid{
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -278,108 +274,69 @@ st.markdown(
         align-items: end;
         margin-top: 10px;
       }
-
       .pp-kpi{ min-width: 0; }
       .pp-kpi.center{ text-align: center; }
       .pp-kpi.right{ text-align: right; }
-
-      .pp-kpi-label{
-        font-size: 0.92rem;
-        opacity: 0.78;
-      }
-
+      .pp-kpi-label{ font-size: 0.92rem; opacity: 0.78; }
       .pp-kpi-value{
         font-size: 2.15rem;
         font-weight: 760;
         line-height: 1.1;
         margin-top: 6px;
       }
-
-      .pp-kpi-value.mid{
-        font-size: 1.9rem;
-      }
-
-      /* ===== Pass confidence colors (STRONG OVERRIDE) ===== */
-      .pp-kpi-value.pass-high { color: #22c55e !important; }     /* green */
-      .pp-kpi-value.pass-moderate { color: #f59e0b !important; } /* amber */
-      .pp-kpi-value.pass-low { color: #ef4444 !important; }      /* red */
-
+      .pp-kpi-value.mid{ font-size: 1.9rem; }
+      .pp-kpi-value.pass-high { color: #22c55e !important; }
+      .pp-kpi-value.pass-moderate { color: #f59e0b !important; }
+      .pp-kpi-value.pass-low { color: #ef4444 !important; }
       .pp-progress{
         margin-top: 16px;
         height: 10px;
         border-radius: 999px;
         background: rgba(255,255,255,0.08);
         overflow: hidden;
-        animation: ppFadeUp 220ms ease-out;   /* ✅ makes progress bar fade in */
+        animation: ppFadeUp 220ms ease-out;
       }
-
       .pp-progress > div{
         height: 100%;
         width: 0%;
         border-radius: 999px;
         background: rgba(59,130,246,0.95);
-        transition: width 650ms ease;         /* ✅ makes fill animate */
+        transition: width 650ms ease;
       }
-
-      /* Mobile: stack KPIs */
       @media (max-width: 900px){
         .pp-kpi-grid{ grid-template-columns: 1fr; }
         .pp-kpi.center, .pp-kpi.right{ text-align: left; }
       }
-
-      /* ===== Space out Streamlit dividers + section headings ===== */
-      div[data-testid="stDivider"] {
-        margin: 22px 0 28px 0 !important;
-      }
-
-      .pp-section-title{
-        margin-top: 10px !important;
-        margin-bottom: 10px !important;
-        padding-top: 2px;
-      }
-
-      h2, h3{
-        margin-top: 14px !important;
-      }
-
-      /* ===== Subtle KPI entrance animation ===== */
-      @keyframes ppFadeUp {
-        from { opacity: 0; transform: translateY(6px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-
-      .pp-animate {
-        animation: ppFadeUp 220ms ease-out;
-      }
+      div[data-testid="stDivider"] { margin: 22px 0 28px 0 !important; }
+      .pp-section-title{ margin-top: 10px !important; margin-bottom: 10px !important; padding-top: 2px; }
+      h2, h3{ margin-top: 14px !important; }
+      @keyframes ppFadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      .pp-animate { animation: ppFadeUp 220ms ease-out; }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
+
+# ============================================================
+# PDF builder (fails gracefully)
+# ============================================================
+
 def build_snapshot_pdf(snapshot: dict) -> bytes:
-    """
-    Build a clean one-page PDF snapshot using reportlab.
-    Returns PDF bytes that can be used in st.download_button.
-    """
     try:
         from reportlab.lib.pagesizes import letter
         from reportlab.pdfgen import canvas
         from reportlab.lib.units import inch
     except Exception as e:
-        # If reportlab isn't installed on Streamlit Cloud, you'll need it in requirements.txt
-        raise RuntimeError(
-            "PDF export requires 'reportlab'. Add it to requirements.txt and redeploy."
-        ) from e
+        raise RuntimeError("PDF export requires 'reportlab'. Add it to requirements.txt and redeploy.") from e
 
     buf = BytesIO()
     c = canvas.Canvas(buf, pagesize=letter)
     width, height = letter
 
-    # --- Layout constants ---
     left = 0.75 * inch
     right = width - 0.75 * inch
     y = height - 0.85 * inch
-    line = 14
 
     def text(x, y, s, size=11, bold=False):
         c.setFont("Helvetica-Bold" if bold else "Helvetica", size)
@@ -391,9 +348,6 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
         c.line(left, ypos, right, ypos)
 
     def kv_row(ypos, items, size=10):
-        """
-        items = [(label, value), ...] drawn across page in columns
-        """
         col_w = (right - left) / len(items)
         for i, (k, v) in enumerate(items):
             x = left + i * col_w
@@ -408,20 +362,16 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
         pct = max(0, min(int(round(pct)), 100))
         bar_w = right - left
         bar_h = 10
-        # background
         c.setFillColorRGB(0.92, 0.92, 0.92)
         c.roundRect(left, ypos, bar_w, bar_h, 5, stroke=0, fill=1)
-        # fill
-        # color by confidence
         if pct >= 85:
-            c.setFillColorRGB(0.13, 0.77, 0.35)   # green
+            c.setFillColorRGB(0.13, 0.77, 0.35)
         elif pct >= 70:
-            c.setFillColorRGB(0.96, 0.62, 0.05)   # amber
+            c.setFillColorRGB(0.96, 0.62, 0.05)
         else:
-            c.setFillColorRGB(0.94, 0.27, 0.27)   # red
+            c.setFillColorRGB(0.94, 0.27, 0.27)
         c.roundRect(left, ypos, bar_w * (pct / 100.0), bar_h, 5, stroke=0, fill=1)
 
-    # --- Header ---
     text(left, y, snapshot.get("title", "PropPass Engine Snapshot"), size=20, bold=True)
     y -= 26
     c.setFillGray(0.35)
@@ -432,7 +382,6 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
     hr(y)
     y -= 20
 
-    # --- Meta row ---
     kv_row(
         y,
         [
@@ -446,7 +395,6 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
     )
     y -= 48
 
-    # --- Pass Probability section ---
     text(left, y, "Pass Probability", size=14, bold=True)
     y -= 18
     text(left, y, f"Confidence: {snapshot['pass_pct']}%  |  Bucket: {snapshot['pass_label']}  |  Trades needed (est.): {snapshot['trades_needed']}", size=11)
@@ -457,7 +405,6 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
     hr(y)
     y -= 20
 
-    # --- Sizing & Edge ---
     text(left, y, "Sizing & Edge", size=14, bold=True)
     y -= 20
     kv_row(
@@ -486,7 +433,6 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
     hr(y)
     y -= 20
 
-    # --- Drawdown Engine ---
     text(left, y, "Drawdown Engine", size=14, bold=True)
     y -= 20
     kv_row(
@@ -512,7 +458,6 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
     )
     y -= 60
 
-    # --- Footer ---
     c.setFillGray(0.45)
     text(left, 0.6 * inch, snapshot["generated_at"], size=9)
     c.setFillGray(0.0)
@@ -520,12 +465,6 @@ def build_snapshot_pdf(snapshot: dict) -> bytes:
     c.showPage()
     c.save()
     return buf.getvalue()
-
-
-
-
-
-
 
 
 # ============================================================
@@ -539,31 +478,34 @@ with st.sidebar:
     st.title("Controls")
     st.caption("All inputs live here. Main page is outputs only.")
 
-    # --- Session state defaults ---
+    if not firms:
+        st.error("No firms found in config.")
+        st.stop()
+
     if "firm_sel" not in st.session_state:
         st.session_state.firm_sel = default_firm
     if "account_sel" not in st.session_state:
         st.session_state.account_sel = None
 
-    # ============================
-    # 1) Account & Rules (instant)
-    # ============================
+    # --- Instant: firm/account ---
     with st.expander("Account & Rules", expanded=True):
         firm = st.selectbox("Prop firm", firms, key="firm_sel")
 
         df_firm = CFG[CFG["Firm"] == firm].copy()
         accounts = sorted([x for x in df_firm["AccountSize"].unique() if x])
 
-        if st.session_state.account_sel not in accounts:
-            st.session_state.account_sel = accounts[0] if accounts else None
+        if not accounts:
+            st.error("No accounts found for this firm in config.")
+            st.stop()
 
-        account = st.selectbox("Account", accounts, key="account_sel", disabled=(len(accounts) == 0))
+        if st.session_state.account_sel not in accounts:
+            st.session_state.account_sel = accounts[0]
+
+        account = st.selectbox("Account", accounts, key="account_sel")
 
     st.divider()
 
-    # ============================
-    # 2) & 3) Everything else (FORM)
-    # ============================
+    # --- FORM: everything else ---
     with st.form("controls_form", border=False):
 
         with st.expander("Your Edge", expanded=True):
@@ -596,53 +538,29 @@ with st.sidebar:
                 step=0.25,
             )
 
-        with st.expander("3) Account State", expanded=False):
+        with st.expander("Account State", expanded=False):
             st.caption(
                 "Default = **between trades** (no open positions). "
                 "If you have open positions, enable the equity override."
             )
 
-            start_balance = st.number_input(
-                "Starting balance ($)",
-                value=50000.0,
-                step=500.0,
-            )
+            start_balance = st.number_input("Starting balance ($)", value=50000.0, step=500.0)
+            realized_pnl = st.number_input("Current realized PnL ($)", value=0.0, step=100.0)
 
-            realized_pnl = st.number_input(
-                "Current realized PnL ($)",
-                value=0.0,
-                step=100.0,
-            )
-
-            use_equity_override = st.checkbox(
-                "I have open positions (enter current equity)",
-                value=False,
-            )
+            use_equity_override = st.checkbox("I have open positions (enter current equity)", value=False)
 
             closed_balance = float(start_balance) + float(realized_pnl)
 
             if use_equity_override:
-                equity = st.number_input(
-                    "Current equity ($)",
-                    value=float(closed_balance),
-                    step=100.0,
-                )
+                equity = st.number_input("Current equity ($)", value=float(closed_balance), step=100.0)
             else:
                 equity = float(closed_balance)
-                st.caption(
-                    f"Equity assumed = closed balance: **${equity:,.0f}**"
-                )
+                st.caption(f"Equity assumed = closed balance: **{_money(equity)}**")
 
-        submitted = st.form_submit_button(
-            "Update dashboard",
-            use_container_width=True,
-        )
+        submitted = st.form_submit_button("Update dashboard", use_container_width=True)
 
-
-
-
-
-
+    st.divider()
+    show_debug = st.checkbox("Show debug panel", value=False)
 
 
 # ============================================================
@@ -657,44 +575,45 @@ if rule_row.empty:
 rule = rule_row.iloc[0].to_dict()
 
 daily_max_loss = rule.get("DailyMaxLoss")  # can be None
-total_max_dd = float(rule.get("TotalMaxDD") or 0.0)
-profit_target = float(rule.get("ProfitTarget") or 0.0)
-firm_max_contracts = int(rule.get("FirmMaxContracts") or 0)
-# ------------------------------------------------------------
-# Normalize firm max contracts by instrument
-# Most prop firms define limits in MINI contracts (NQ)
-# 1 NQ = 10 MNQ
-# ------------------------------------------------------------
-CONTRACTS_PER_MINI = 10
+total_max_dd = _f(rule.get("TotalMaxDD"), 0.0)
+profit_target = _f(rule.get("ProfitTarget"), 0.0)
+firm_max_contracts = int(_f(rule.get("FirmMaxContracts"), 0.0))
 
-if instrument == "MNQ":
-    firm_max_contracts_adj = firm_max_contracts * CONTRACTS_PER_MINI
-else:
-    firm_max_contracts_adj = firm_max_contracts
+# Guard rails: bad config should stop the app (prevents NaN cascades)
+if total_max_dd <= 0:
+    st.error("Config error: TotalMaxDD must be > 0 for this account.")
+    st.stop()
+
+if firm_max_contracts <= 0:
+    st.error("Config error: FirmMaxContracts must be > 0 for this account.")
+    st.stop()
+
+# Normalize firm max contracts by instrument (firms define in NQ minis typically)
+CONTRACTS_PER_MINI = 10
+firm_max_contracts_adj = firm_max_contracts * CONTRACTS_PER_MINI if instrument == "MNQ" else firm_max_contracts
 
 dd_type = (rule.get("DDType") or "").strip()
 
 # Instrument point value
 point_value = 20.0 if instrument == "NQ" else 2.0
 
-# If daily max loss is N/A, use total DD as practical cap for sizing
-risk_budget = daily_max_loss if (daily_max_loss is not None and daily_max_loss > 0) else total_max_dd
+# Risk budget: daily max loss if present, else total DD
+risk_budget = daily_max_loss if (_is_num(daily_max_loss) and float(daily_max_loss) > 0) else total_max_dd
+risk_budget = max(float(risk_budget), 0.0)
 
 # Risk frac (mode-aware)
-# If the config row has a Mode + RiskFrac, only apply it when it matches the selected risk_mode.
 rule_mode = (rule.get("Mode") or "").strip()
 risk_frac_cfg = rule.get("RiskFracDailyDDPerTrade")  # may be None
-
 fallback_frac = {"Safe": 0.10, "Standard": 0.15, "Aggressive": 0.25}[risk_mode]
 
 use_cfg_frac = (
-    (risk_frac_cfg is not None)
-    and (risk_frac_cfg > 0)
+    _is_num(risk_frac_cfg)
+    and float(risk_frac_cfg) > 0
     and (rule_mode == "" or rule_mode == risk_mode)
 )
 
-risk_frac_effective = risk_frac_cfg if use_cfg_frac else fallback_frac
-
+risk_frac_effective = float(risk_frac_cfg) if use_cfg_frac else float(fallback_frac)
+risk_frac_effective = _clamp(risk_frac_effective, 0.01, 1.0)
 
 
 # ============================================================
@@ -702,30 +621,32 @@ risk_frac_effective = risk_frac_cfg if use_cfg_frac else fallback_frac
 # ============================================================
 
 win_rate = win_rate_pct / 100.0
+ev_r = (win_rate * float(r_multiple)) - ((1.0 - win_rate) * 1.0)
 
-# EV per trade in R
-ev_r = (win_rate * r_multiple) - ((1.0 - win_rate) * 1.0)
-
-# $ risk per contract per trade
-risk_per_contract = stop_points * point_value
+# Risk per contract per trade (guard against zero)
+risk_per_contract = max(float(stop_points) * float(point_value), 1e-9)
 
 # Contracts allowed by risk budget fraction
-contracts_by_risk = int(max(0, (risk_budget * risk_frac_effective) // max(risk_per_contract, 1e-9)))
-active_contracts = max(0, min(firm_max_contracts_adj, contracts_by_risk))
-
+contracts_by_risk = int(max(0.0, (risk_budget * risk_frac_effective) // risk_per_contract))
+active_contracts = max(0, min(int(firm_max_contracts_adj), int(contracts_by_risk)))
 
 # Expected edge per trade ($)
-expected_edge_dollars = ev_r * risk_per_contract * max(active_contracts, 1)
+expected_edge_dollars = ev_r * risk_per_contract * float(active_contracts)
 
-# Remaining profit to target
+# Progress to target uses realized/closed PnL only
 current_realized = float(realized_pnl)
-remaining_profit = max(0.0, profit_target - current_realized)
+remaining_profit = max(0.0, float(profit_target) - current_realized)
 
-estimated_trades = None
-if expected_edge_dollars > 0:
+# Trades to target: only if you have positive edge AND remaining profit
+estimated_trades: Optional[float] = None
+if remaining_profit <= 0:
+    estimated_trades = 0.0
+elif expected_edge_dollars > 0:
     estimated_trades = remaining_profit / expected_edge_dollars
 
 def pass_bucket(ev_r_val: float, trades_needed: Optional[float]) -> str:
+    if remaining_profit <= 0:
+        return "High (at/above target)"
     if ev_r_val <= 0:
         return "Low (negative edge)"
     if trades_needed is None:
@@ -738,24 +659,20 @@ def pass_bucket(ev_r_val: float, trades_needed: Optional[float]) -> str:
 
 pass_label = pass_bucket(ev_r, estimated_trades)
 pass_pct = {"High": 88, "Moderate": 79, "Low": 55}.get(pass_label.split()[0], 70)
-# Confidence color classes
-if pass_label.startswith("High"):
+
+# Confidence color class
+pass_pct_i = int(round(pass_pct))
+if pass_pct_i >= 85:
     pass_class = "pass-high"
-    bar_class = "pass-bar-high"
-elif pass_label.startswith("Moderate"):
+elif pass_pct_i >= 70:
     pass_class = "pass-moderate"
-    bar_class = "pass-bar-moderate"
 else:
     pass_class = "pass-low"
-    bar_class = "pass-bar-low"
 
 
 # ============================================================
 # 9) Drawdown Engine (HWM + trailing line)
 # ============================================================
-
-# closed_balance was computed in the sidebar Account State block
-# equity is either auto-set to closed_balance (between trades) or user override (open positions)
 
 # HWM policy:
 # - Balance/EOD trailing should move based on CLOSED balance highs
@@ -765,6 +682,7 @@ if dd_type in ("BALANCE_TRAIL", "EOD_TRAIL"):
 else:
     hwm = max(float(start_balance), float(equity))
 
+state, used_call = None, None
 try:
     state, used_call = safe_compute_trailing_state(
         compute_trailing_state,
@@ -774,9 +692,9 @@ try:
         hwm=float(hwm),
     )
 except Exception as e:
-    state, used_call = None, None
-    st.error("Drawdown engine error")
-    st.exception(e)
+    st.error("Drawdown engine error (check drawdown.py signature/logic).")
+    if show_debug:
+        st.exception(e)
 
 trailing_line = None
 if state is not None:
@@ -785,12 +703,10 @@ if state is not None:
         trailing_line = state.get("trailing_line")
 
 
-
 # ============================================================
 # 10) MAIN PAGE (outputs only)
 # ============================================================
 
-# --- Header (HTML only) ---
 st.markdown(
     f"""
 <div class="pp-header">
@@ -816,9 +732,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- PDF Snapshot Download (REAL PYTHON, NOT INSIDE MARKDOWN STRING) ---
-from datetime import datetime
-
+# --- PDF Snapshot Download (graceful failure) ---
 snapshot = {
     "title": "PropPass Engine — Snapshot",
     "subtitle": "Current dashboard values exported as a one-page report.",
@@ -830,37 +744,41 @@ snapshot = {
     "pass_pct": int(round(pass_pct)),
     "pass_label": pass_label,
     "trades_needed": (f"{estimated_trades:.1f}" if estimated_trades is not None else "—"),
-    "risk_per_contract": f"${risk_per_contract:,.2f}",
-    "risk_budget": (f"${risk_budget:,.0f}" if risk_budget is not None else "—"),
+    "risk_per_contract": _money(risk_per_contract, 2),
+    "risk_budget": _money(risk_budget, 0),
     "max_contracts": str(firm_max_contracts_adj),
     "active_contracts": str(active_contracts),
     "win_rate": f"{win_rate_pct}%",
-    "r_multiple": f"{r_multiple:.2f}R",
+    "r_multiple": f"{float(r_multiple):.2f}R",
     "ev_r": f"{ev_r:.3f}",
-    "edge_trade": (f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—"),
-    "start_balance": f"${float(start_balance):,.0f}",
-    "equity": f"${float(equity):,.0f}",
-    "closed_balance": f"${float(closed_balance):,.0f}",
-    "max_dd": f"${float(total_max_dd):,.0f}",
-    "hwm": f"${float(hwm):,.2f}",
-    "trailing_line": (f"${float(trailing_line):,.2f}" if trailing_line is not None else "—"),
-    "buffer": (f"${(float(equity) - float(trailing_line)):,.2f}" if trailing_line is not None else "—"),
+    "edge_trade": _money(expected_edge_dollars, 2),
+    "start_balance": _money(start_balance, 0),
+    "equity": _money(equity, 0),
+    "closed_balance": _money(closed_balance, 0),
+    "max_dd": _money(total_max_dd, 0),
+    "hwm": _money(hwm, 2),
+    "trailing_line": (_money(trailing_line, 2) if trailing_line is not None else "—"),
+    "buffer": (_money(float(equity) - float(trailing_line), 2) if trailing_line is not None else "—"),
     "engine_call": (used_call or "—"),
     "generated_at": f"Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
 }
 
-pdf_bytes = build_snapshot_pdf(snapshot)
+try:
+    pdf_bytes = build_snapshot_pdf(snapshot)
+    st.download_button(
+        label="Download PDF snapshot",
+        data=pdf_bytes,
+        file_name=f"PropPass_Snapshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+        mime="application/pdf",
+    )
+except Exception as e:
+    st.warning("PDF export is unavailable (missing dependency). Add `reportlab` to requirements.txt.")
+    if show_debug:
+        st.exception(e)
 
-st.download_button(
-    label="Download PDF snapshot",
-    data=pdf_bytes,
-    file_name=f"PropPass_Snapshot_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-    mime="application/pdf",
-)
+st.write("")
 
-st.write("")  # small spacing after the button
-
-# --- Pass Probability card (CLEAN HTML GRID) ---
+# --- Pass Probability card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
 st.markdown(
@@ -876,14 +794,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
-pass_pct_i = int(round(pass_pct))
-if pass_pct_i >= 85:
-    pass_class = "pass-high"
-elif pass_pct_i >= 70:
-    pass_class = "pass-moderate"
-else:
-    pass_class = "pass-low"
 
 trades_txt = f"{estimated_trades:.1f}" if estimated_trades is not None else "—"
 
@@ -914,7 +824,7 @@ st.markdown(
     </div>
 
     <div class="tiny" style="margin-top:8px;">
-      EV(R): {ev_r:.3f} · Expected edge per trade: ${expected_edge_dollars:,.2f}
+      EV(R): {ev_r:.3f} · Expected edge per trade: {_money(expected_edge_dollars, 2)}
     </div>
     """,
     unsafe_allow_html=True,
@@ -924,46 +834,34 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
 
 
-
-
-
-
-
-
-
-# ============================================================
-# MAIN PAGE HEADER (premium)
-# ============================================================
-
-
-# --- Risk / Sizing card ---
+# --- Sizing & Edge card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
 st.markdown('<div class="pp-section-title">Sizing & Edge</div>', unsafe_allow_html=True)
 
 s1, s2, s3, s4 = st.columns(4)
-s1.metric("Risk per contract", f"${risk_per_contract:,.2f}")
-s2.metric("Risk budget", f"${risk_budget:,.0f}" if risk_budget > 0 else "—")
+s1.metric("Risk per contract", _money(risk_per_contract, 2))
+s2.metric("Risk budget", _money(risk_budget, 0) if risk_budget > 0 else "—")
 s3.metric("Max contracts (rule)", f"{firm_max_contracts_adj}")
 s4.metric("Active contracts (by risk)", f"{active_contracts}")
 
 e1, e2, e3, e4 = st.columns(4)
 e1.metric("Win rate", f"{win_rate_pct}%")
-e2.metric("R multiple", f"{r_multiple:.2f}R")
+e2.metric("R multiple", f"{float(r_multiple):.2f}R")
 e3.metric("EV (R)", f"{ev_r:.3f}")
-e4.metric("Expected edge / trade", f"${expected_edge_dollars:,.2f}" if expected_edge_dollars is not None else "—")
+e4.metric("Expected edge / trade", _money(expected_edge_dollars, 2))
 
-t1, t2, t3, t4 = st.columns(4)  # <-- force 4 columns for alignment
+t1, t2, t3, t4 = st.columns(4)
 t1.metric("Trades to target (est.)", f"{estimated_trades:,.1f}" if estimated_trades is not None else "—")
-t2.metric("Stop (points)", f"{stop_points:g}")
-t3.metric("Point value", f"${point_value:,.0f}/pt")
-t4.metric("", "")  # blank spacer keeps the row visually centered/consistent
+t2.metric("Stop (points)", f"{float(stop_points):g}")
+t3.metric("Point value", f"${float(point_value):,.0f}/pt")
+t4.metric("", "")
 
 st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
 
 
-# --- Drawdown engine card ---
+# --- Drawdown Engine card ---
 st.markdown('<div class="soft-card">', unsafe_allow_html=True)
 
 st.markdown('<div class="pp-section-title">Drawdown Engine</div>', unsafe_allow_html=True)
@@ -972,22 +870,18 @@ st.caption(
     "**current equity should equal your realized/closed balance**."
 )
 
-
-# --- Top row: balances ---
 d1, d2, d3, d4 = st.columns(4)
-d1.metric("Starting balance", f"${float(start_balance):,.0f}")
-d2.metric("Current equity", f"${float(equity):,.0f}")
-d3.metric("Closed balance (realized)", f"${closed_balance:,.0f}")
-d4.metric("Max loss allowed", f"${total_max_dd:,.0f}")
+d1.metric("Starting balance", _money(start_balance, 0))
+d2.metric("Current equity", _money(equity, 0))
+d3.metric("Closed balance (realized)", _money(closed_balance, 0))
+d4.metric("Max loss allowed", _money(total_max_dd, 0))
 
-# --- Second row: rule mechanics ---
-dd1, dd2, dd3, dd4 = st.columns(4)  # keep alignment
-dd1.metric("Peak balance reached", f"${hwm:,.2f}")
-dd2.metric("Failure line", f"${trailing_line:,.2f}" if trailing_line is not None else "—")
+dd1, dd2, dd3, dd4 = st.columns(4)
+dd1.metric("Peak balance reached", _money(hwm, 2))
+dd2.metric("Failure line", _money(trailing_line, 2) if trailing_line is not None else "—")
 dd3.metric("Rule applied", used_call or "—")
-dd4.metric("", "")  # blank spacer
+dd4.metric("", "")
 
-# --- Buffer messaging (action-oriented) ---
 if trailing_line is not None:
     buffer_amt = float(equity) - float(trailing_line)
 
@@ -995,12 +889,12 @@ if trailing_line is not None:
         st.error("You are at or beyond the failure line. Stop trading.")
     elif buffer_amt < 0.25 * float(total_max_dd):
         st.warning(
-            f"Caution: Only ${buffer_amt:,.0f} of loss buffer remains. "
+            f"Caution: Only {_money(buffer_amt, 0)} of loss buffer remains. "
             "Consider reducing size or stopping."
         )
     else:
         st.caption(
-            f"You can lose **${buffer_amt:,.2f}** more before failing "
+            f"You can lose **{_money(buffer_amt, 2)}** more before failing "
             "(current equity − failure line)."
         )
 
@@ -1008,12 +902,12 @@ st.markdown("</div>", unsafe_allow_html=True)
 st.write("")
 
 
-
-# --- Account rules (outputs only) ---
+# --- Account rules expander ---
 dd_label_map = {
     "EOD_TRAIL": "End-of-day trailing drawdown",
     "BALANCE_TRAIL": "Balance trailing drawdown",
     "EQUITY_TRAIL": "Equity trailing drawdown",
+    "TRUE_TRAIL": "Equity trailing drawdown",
     "STATIC": "Static drawdown",
 }
 dd_type_label = dd_label_map.get(dd_type, str(dd_type) if dd_type else "—")
@@ -1024,30 +918,18 @@ with st.expander("Account rules (how this evaluation is judged)", expanded=False
         "This tool uses them automatically in sizing and pass confidence."
     )
 
-    # Quick summary
     a1, a2 = st.columns(2)
-
     with a1:
         st.markdown("**Firm / Account**")
         st.write(f"{firm} • {account}")
-
         st.markdown("**Drawdown type**")
         st.write(dd_type_label)
 
     with a2:
         st.markdown("**Profit target**")
-        st.write(
-            "N/A"
-            if profit_target is None or profit_target <= 0
-            else f"${profit_target:,.0f}"
-        )
-
+        st.write("N/A" if profit_target <= 0 else _money(profit_target, 0))
         st.markdown("**Max drawdown (allowed loss)**")
-        st.write(
-            "N/A"
-            if total_max_dd is None
-            else f"${total_max_dd:,.0f}"
-        )
+        st.write(_money(total_max_dd, 0))
 
     st.divider()
 
@@ -1061,21 +943,61 @@ with st.expander("Account rules (how this evaluation is judged)", expanded=False
 
     st.markdown("### Limits for this account")
 
-    daily_loss_display = (
-        "N/A"
-        if daily_max_loss is None or pd.isna(daily_max_loss)
-        else f"${daily_max_loss:,.0f}"
-    )
+    daily_loss_display = "N/A"
+    if _is_num(daily_max_loss) and float(daily_max_loss) > 0:
+        daily_loss_display = _money(daily_max_loss, 0)
+
     st.write(f"- **Daily max loss:** {daily_loss_display}")
+    st.write(f"- **Firm max contracts:** {firm_max_contracts}")
 
-    st.write(
-        f"- **Firm max contracts:** "
-        f"{firm_max_contracts if firm_max_contracts is not None else '—'}"
-    )
-
-    # Optional: advanced details
     with st.expander("Show raw config (advanced)", expanded=False):
         st.caption("This is the exact config row driving the dashboard.")
         st.dataframe(pd.DataFrame([rule]), use_container_width=True)
+
+
+# --- Debug panel (hidden unless enabled) ---
+if show_debug:
+    st.divider()
+    st.subheader("Debug / Internals")
+    st.json({
+        "firm": firm,
+        "account": account,
+        "instrument": instrument,
+        "risk_mode": risk_mode,
+        "win_rate_pct": win_rate_pct,
+        "r_multiple": float(r_multiple),
+        "stop_points": float(stop_points),
+        "point_value": float(point_value),
+        "risk_budget": float(risk_budget),
+        "risk_frac_effective": float(risk_frac_effective),
+        "risk_per_contract": float(risk_per_contract),
+        "contracts_by_risk": int(contracts_by_risk),
+        "firm_max_contracts_adj": int(firm_max_contracts_adj),
+        "active_contracts": int(active_contracts),
+        "ev_r": float(ev_r),
+        "expected_edge_dollars": float(expected_edge_dollars),
+        "profit_target": float(profit_target),
+        "current_realized": float(current_realized),
+        "remaining_profit": float(remaining_profit),
+        "estimated_trades": estimated_trades,
+        "dd_type": dd_type,
+        "start_balance": float(start_balance),
+        "closed_balance": float(closed_balance),
+        "equity": float(equity),
+        "hwm": float(hwm),
+        "total_max_dd": float(total_max_dd),
+        "trailing_line": float(trailing_line) if trailing_line is not None else None,
+        "engine_call_used": used_call,
+    })
+
+
+
+
+
+
+
+
+
+
 
 
